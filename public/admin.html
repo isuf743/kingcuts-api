@@ -368,7 +368,10 @@ tr:hover td{background:var(--bg)}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = '/barber/api.php';
+// ── API URL - Ndrysho kete pas Railway deploy ──
+var _railwayURL = 'https://kingcuts-api-production.up.railway.app/api.php';
+var _localURL = '/barber/api.php';
+const API = (window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1') ? _localURL : _railwayURL;
 let authToken = localStorage.getItem('kc_admin_token') || '';
 let currentFilter = 'all';
 
