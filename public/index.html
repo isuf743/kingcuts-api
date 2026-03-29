@@ -594,6 +594,13 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 <div class="toast" id="toast"></div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── API URL - Ndrysho kete pas Railway deploy ──
+var API_URL = 'https://kingcuts-api-production.up.railway.app/api.php';
+// Nese je ne localhost, perdor kete:
+if(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'){
+  API_URL = '/barber/api.php';
+}
+
 var booking = {service:'', price:'', duration:'', barber:'', barberId:0};
 var userRating = 0;
 var calDate = new Date();
@@ -694,7 +701,7 @@ function loadBarbersForBooking(){
   var grid=document.getElementById('barbers-grid-booking');
   if(!grid) return;
   grid.innerHTML='<div style="text-align:center;padding:2rem;color:#7a6a50;font-style:italic;grid-column:span 4">Duke ngarkuar...</div>';
-  fetch('/barber/api.php?action=get_barbers')
+  fetch(API_URL+'?action=get_barbers')
     .then(function(r){return r.json();})
     .catch(function(){
       return [
@@ -813,7 +820,7 @@ function selectDate(key,d,m,y){
   var isToday=(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate());
   var barberParam=booking.barberId?'&barber_id='+booking.barberId:'';
 
-  fetch('/barber/api.php?action=get_booked_slots&date='+key+barberParam)
+  fetch(API_URL+'?action=get_booked_slots&date='+key+barberParam)
     .then(function(r){return r.json();})
     .catch(function(){return [];})
     .then(function(booked){
@@ -896,7 +903,7 @@ function submitBooking(){
   document.getElementById('s-time').textContent=selSlot;
   document.getElementById('s-price').textContent=booking.price;
   document.getElementById('s-email-shown').textContent=email||'(nuk u dha)';
-  fetch('/barber/api.php?action=add_booking',{
+  fetch(API_URL+'?action=add_booking',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({client_name:name,client_phone:phone,client_email:email,barber_name:booking.barber,service_name:booking.service,price:booking.price,booking_date:selDate,booking_time:selSlot})
   }).then(function(r){return r.json();})
