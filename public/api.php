@@ -1,21 +1,33 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// Handle preflight OPTIONS request
+if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){
+    http_response_code(200);
+    exit;
+}
 error_reporting(0);
 ini_set('display_errors', 0);
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'kingcuts_db');
+// Railway MySQL environment variables
+define('DB_HOST', getenv('MYSQLHOST')     ?: getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('MYSQLUSER')     ?: getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'kingcuts_db');
+define('DB_PORT', getenv('MYSQLPORT')     ?: 3306);
 
 function getDB(){
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $port = intval(getenv('MYSQLPORT') ?: 3306);
+    $host = getenv('MYSQLHOST') ?: 'localhost';
+    $user = getenv('MYSQLUSER') ?: 'root';
+    $pass = getenv('MYSQLPASSWORD') ?: '';
+    $name = getenv('MYSQLDATABASE') ?: 'kingcuts_db';
+    $conn = new mysqli($host, $user, $pass, $name, $port);
     if($conn->connect_error){
         http_response_code(500);
-        echo json_encode(array('error'=>'DB error: '.$conn->connect_error));
+        echo json_encode(array('error'=>'DB connection failed: '.$conn->connect_error));
         exit;
     }
     $conn->set_charset('utf8');
