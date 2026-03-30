@@ -306,40 +306,76 @@ if($action === 'send_email' && $method === 'POST'){
 
     if(!$to) respond(array('error'=>'Email mungon'), 400);
 
+    $gmail_user = getenv('GMAIL_USER') ?: '';
+    $gmail_pass = getenv('GMAIL_APP_PASSWORD') ?: '';
+    // Remove spaces from app password
+    $gmail_pass = str_replace(' ', '', $gmail_pass);
+
     $subject = 'Konfirmim Rezervimi - King Cuts';
-    $message = "Pershendetje $name,
+    $html_body = "<html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+    <div style='background:#1a1a1a;padding:20px;text-align:center;'>
+        <h1 style='color:#c9a84c;margin:0;'>&#9986; KING CUTS</h1>
+    </div>
+    <div style='padding:30px;background:#f9f9f9;'>
+        <h2 style='color:#333;'>Rezervimi u Konfirmua! &#9989;</h2>
+        <p>Pershendetje <strong>$name</strong>,</p>
+        <p>Rezervimi juaj u konfirmua me sukses. Ja detajet:</p>
+        <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
+            <tr style='background:#c9a84c;color:white;'><td style='padding:10px;'>Sherbimi</td><td style='padding:10px;'><strong>$service</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Berberi</td><td style='padding:10px;'><strong>$barber</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Data</td><td style='padding:10px;'><strong>$date</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Ora</td><td style='padding:10px;'><strong>$time</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Cmimi</td><td style='padding:10px;'><strong>$price</strong></td></tr>
+        </table>
+        <p>Ju presim me padurim!</p>
+    </div>
+    <div style='background:#1a1a1a;padding:15px;text-align:center;'>
+        <p style='color:#c9a84c;margin:0;'>King Cuts &bull; +355 69 123 4567</p>
+    </div>
+    </body></html>";
 
-";
-    $message .= "Rezervimi juaj u konfirmua!
+    // Send via Gmail SMTP SSL
+    $socket = @fsockopen('ssl://smtp.gmail.com', 465, $errno, $errstr, 15);
+    if(!$socket){
+        respond(array('error'=>'SMTP lidhja deshtoi: '.$errstr), 500);
+    }
 
-";
-    $message .= "Sherbimi: $service
-";
-    $message .= "Berberi: $barber
-";
-    $message .= "Data: $date
-";
-    $message .= "Ora: $time
-";
-    $message .= "Cmimi: $price
+    function smtp_get($s){ $r=''; while($l=fgets($s,512)){$r.=$l; if(substr($l,3,1)===' ')break;} return $r; }
+    function smtp_send($s,$c){ fwrite($s,$c."\r\n"); return smtp_get($s); }
 
-";
-    $message .= "Ju presim me padurim!
-";
-    $message .= "King Cuts - +355 69 123 4567";
+    smtp_get($socket); // greeting
+    smtp_send($socket, 'EHLO smtp.gmail.com');
+    smtp_send($socket, 'AUTH LOGIN');
+    smtp_send($socket, base64_encode($gmail_user));
+    $auth_resp = smtp_send($socket, base64_encode($gmail_pass));
 
-    $headers  = "From: King Cuts <noreply@kingcuts.com>
-";
-    $headers .= "Reply-To: noreply@kingcuts.com
-";
-    $headers .= "Content-Type: text/plain; charset=UTF-8
-";
+    if(substr(trim($auth_resp),0,3) !== '235'){
+        fclose($socket);
+        respond(array('error'=>'Gmail autentifikimi deshtoi. Kontrolloni GMAIL_USER dhe GMAIL_APP_PASSWORD'), 500);
+    }
 
-    $sent = mail($to, $subject, $message, $headers);
-    if($sent){
+    smtp_send($socket, "MAIL FROM:<$gmail_user>");
+    smtp_send($socket, "RCPT TO:<$to>");
+    smtp_send($socket, 'DATA');
+
+    $encoded_body = base64_encode($html_body);
+    $msg  = "From: King Cuts <$gmail_user>\r\n";
+    $msg .= "To: $name <$to>\r\n";
+    $msg .= "Subject: =?UTF-8?B?".base64_encode($subject)."?=\r\n";
+    $msg .= "MIME-Version: 1.0\r\n";
+    $msg .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $msg .= "Content-Transfer-Encoding: base64\r\n";
+    $msg .= "\r\n".$encoded_body."\r\n.\r\n";
+
+    fwrite($socket, $msg);
+    $data_resp = smtp_get($socket);
+    smtp_send($socket, 'QUIT');
+    fclose($socket);
+
+    if(substr(trim($data_resp),0,3) === '250'){
         respond(array('success'=>true));
     } else {
-        respond(array('error'=>'Email nuk u dergua'), 500);
+        respond(array('error'=>'Email nuk u dergua: '.trim($data_resp)), 500);
     }
 }
 
