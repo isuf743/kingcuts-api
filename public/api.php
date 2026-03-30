@@ -294,5 +294,54 @@ if($action === 'get_booked_slots' && $method === 'GET'){
     respond(array_values(array_unique($times)));
 }
 
+// SEND EMAIL
+if($action === 'send_email' && $method === 'POST'){
+    $to      = isset($input['to_email'])  ? $input['to_email']  : '';
+    $name    = isset($input['to_name'])   ? $input['to_name']   : '';
+    $service = isset($input['service'])   ? $input['service']   : '';
+    $barber  = isset($input['barber'])    ? $input['barber']    : '';
+    $date    = isset($input['date'])      ? $input['date']      : '';
+    $time    = isset($input['time'])      ? $input['time']      : '';
+    $price   = isset($input['price'])     ? $input['price']     : '';
+
+    if(!$to) respond(array('error'=>'Email mungon'), 400);
+
+    $subject = 'Konfirmim Rezervimi - King Cuts';
+    $message = "Pershendetje $name,
+
+";
+    $message .= "Rezervimi juaj u konfirmua!
+
+";
+    $message .= "Sherbimi: $service
+";
+    $message .= "Berberi: $barber
+";
+    $message .= "Data: $date
+";
+    $message .= "Ora: $time
+";
+    $message .= "Cmimi: $price
+
+";
+    $message .= "Ju presim me padurim!
+";
+    $message .= "King Cuts - +355 69 123 4567";
+
+    $headers  = "From: King Cuts <noreply@kingcuts.com>
+";
+    $headers .= "Reply-To: noreply@kingcuts.com
+";
+    $headers .= "Content-Type: text/plain; charset=UTF-8
+";
+
+    $sent = mail($to, $subject, $message, $headers);
+    if($sent){
+        respond(array('success'=>true));
+    } else {
+        respond(array('error'=>'Email nuk u dergua'), 500);
+    }
+}
+
 respond(array('error'=>'Action e panjohur: '.$action), 404);
 ?>
