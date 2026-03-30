@@ -329,6 +329,8 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   .price-card{padding:1.2rem}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>emailjs.init("hll9wLYN93nYu1Kwc");</script>
 </head>
 <body>
 
@@ -909,10 +911,21 @@ function submitBooking(){
   }).then(function(r){return r.json();})
     .then(function(res){if(res.success)console.log('Rezervimi u ruajt! ID:'+res.id);else console.log('Gabim:',res.error);})
     .catch(function(e){console.log('Error:',e);});
+  // Send email automatically via EmailJS
   if(email){
-    var sub=encodeURIComponent('Konfirmim Rezervimi - King Cuts');
-    var body=encodeURIComponent('Pershendetje '+name+',\n\nRezervimi juaj u konfirmua!\n\nSherbimi: '+booking.service+'\nBerberi: '+booking.barber+'\nData: '+selDateLabel+'\nOra: '+selSlot+'\nCmimi: '+booking.price+'\n\nKing Cuts - +355 69 123 4567');
-    setTimeout(function(){window.location.href='mailto:'+email+'?subject='+sub+'&body='+body;},800);
+    emailjs.send('service_q359imp', 'template_9panan3', {
+      to_name: name,
+      to_email: email,
+      service: booking.service,
+      barber: booking.barber,
+      date: selDateLabel,
+      time: selSlot,
+      price: booking.price
+    }).then(function(){
+      console.log('Email u dergua!');
+    }).catch(function(e){
+      console.log('Email error:', e);
+    });
   }
   goPage('p-success');
 }
