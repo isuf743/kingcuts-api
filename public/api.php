@@ -294,7 +294,7 @@ if($action === 'get_booked_slots' && $method === 'GET'){
     respond(array_values(array_unique($times)));
 }
 
-// SEND EMAIL
+// SEND EMAIL via Resend
 if($action === 'send_email' && $method === 'POST'){
     $to      = isset($input['to_email'])  ? $input['to_email']  : '';
     $name    = isset($input['to_name'])   ? $input['to_name']   : '';
@@ -306,13 +306,10 @@ if($action === 'send_email' && $method === 'POST'){
 
     if(!$to) respond(array('error'=>'Email mungon'), 400);
 
-    $gmail_user = getenv('GMAIL_USER') ?: '';
-    $gmail_pass = getenv('GMAIL_APP_PASSWORD') ?: '';
-    // Remove spaces from app password
-    $gmail_pass = str_replace(' ', '', $gmail_pass);
+    $resend_key = getenv('RESEND_API_KEY') ?: 're_GYbmRiyt_JPvoDraeu4SpyFryr1e4TG88';
 
-    $subject = 'Konfirmim Rezervimi - King Cuts';
-    $html_body = "<html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+    $html_body = "
+    <html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
     <div style='background:#1a1a1a;padding:20px;text-align:center;'>
         <h1 style='color:#c9a84c;margin:0;'>&#9986; KING CUTS</h1>
     </div>
@@ -334,48 +331,30 @@ if($action === 'send_email' && $method === 'POST'){
     </div>
     </body></html>";
 
-    // Send via Gmail SMTP SSL
-    $socket = @fsockopen('ssl://smtp.gmail.com', 465, $errno, $errstr, 15);
-    if(!$socket){
-        respond(array('error'=>'SMTP lidhja deshtoi: '.$errstr), 500);
-    }
+    $payload = json_encode(array(
+        'from' => 'King Cuts <onboarding@resend.dev>',
+        'to'   => array($to),
+        'subject' => 'Konfirmim Rezervimi - King Cuts',
+        'html' => $html_body
+    ));
 
-    function smtp_get($s){ $r=''; while($l=fgets($s,512)){$r.=$l; if(substr($l,3,1)===' ')break;} return $r; }
-    function smtp_send($s,$c){ fwrite($s,$c."\r\n"); return smtp_get($s); }
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer '.$resend_key,
+        'Content-Type: application/json'
+    ));
+    $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-    smtp_get($socket); // greeting
-    smtp_send($socket, 'EHLO smtp.gmail.com');
-    smtp_send($socket, 'AUTH LOGIN');
-    smtp_send($socket, base64_encode($gmail_user));
-    $auth_resp = smtp_send($socket, base64_encode($gmail_pass));
-
-    if(substr(trim($auth_resp),0,3) !== '235'){
-        fclose($socket);
-        respond(array('error'=>'Gmail autentifikimi deshtoi. Kontrolloni GMAIL_USER dhe GMAIL_APP_PASSWORD'), 500);
-    }
-
-    smtp_send($socket, "MAIL FROM:<$gmail_user>");
-    smtp_send($socket, "RCPT TO:<$to>");
-    smtp_send($socket, 'DATA');
-
-    $encoded_body = base64_encode($html_body);
-    $msg  = "From: King Cuts <$gmail_user>\r\n";
-    $msg .= "To: $name <$to>\r\n";
-    $msg .= "Subject: =?UTF-8?B?".base64_encode($subject)."?=\r\n";
-    $msg .= "MIME-Version: 1.0\r\n";
-    $msg .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $msg .= "Content-Transfer-Encoding: base64\r\n";
-    $msg .= "\r\n".$encoded_body."\r\n.\r\n";
-
-    fwrite($socket, $msg);
-    $data_resp = smtp_get($socket);
-    smtp_send($socket, 'QUIT');
-    fclose($socket);
-
-    if(substr(trim($data_resp),0,3) === '250'){
+    $res = json_decode($result, true);
+    if($http_code === 200 || $http_code === 201){
         respond(array('success'=>true));
     } else {
-        respond(array('error'=>'Email nuk u dergua: '.trim($data_resp)), 500);
+        respond(array('error'=>'Resend error: '.($res['message'] ?? $result)), 500);
     }
 }
 
