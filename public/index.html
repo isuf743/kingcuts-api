@@ -329,8 +329,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   .price-card{padding:1.2rem}
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>emailjs.init({publicKey:"hll9wLYN93nYu1Kwc"});</script>
+
 </head>
 <body>
 
@@ -911,18 +910,27 @@ function submitBooking(){
   }).then(function(r){return r.json();})
     .then(function(res){if(res.success)console.log('Rezervimi u ruajt! ID:'+res.id);else console.log('Gabim:',res.error);})
     .catch(function(e){console.log('Error:',e);});
-  // Send email automatically via EmailJS
+  // Send email automatically via EmailJS REST API
   if(email){
-    emailjs.send('service_q359imp', 'template_9panan3', {
-      to_name: name,
-      to_email: email,
-      service: booking.service,
-      barber: booking.barber,
-      date: selDateLabel,
-      time: selSlot,
-      price: booking.price
-    }).then(function(){
-      console.log('Email u dergua!');
+    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        service_id: 'service_q359imp',
+        template_id: 'template_9panan3',
+        user_id: 'hll9wLYN93nYu1Kwc',
+        template_params: {
+          to_name: name,
+          to_email: email,
+          service: booking.service,
+          barber: booking.barber,
+          date: selDateLabel,
+          time: selSlot,
+          price: booking.price
+        }
+      })
+    }).then(function(r){
+      console.log('Email u dergua! Status:', r.status);
     }).catch(function(e){
       console.log('Email error:', e);
     });
