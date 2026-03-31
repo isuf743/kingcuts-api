@@ -160,73 +160,8 @@ if($action === 'add_booking' && $method === 'POST'){
         $stmt->execute();
         if($i === 0) $first_id = $db->insert_id;
     }
-    if($first_id > 0){
-
-    // Email to customer
-    if(!empty($client_email)){
-        $customerMsg = "
-        Pershendetje $client_name,<br><br>
-        Rezervimi juaj eshte konfirmuar:<br>
-        Sherbimi: $service_name<br>
-        Berberi: $barber_name<br>
-        Data: $booking_date<br>
-        Ora: $booking_time<br><br>
-        Ju mirepresim!
-        ";
-
-        sendEmail($client_email, "Rezervimi juaj - King Cuts", $customerMsg);
-    }
-
-    // Email to admin
-    $adminMsg = "
-    Rezervim i ri:<br><br>
-    Emri: $client_name<br>
-    Telefon: $client_phone<br>
-    Email: $client_email<br>
-    Sherbimi: $service_name<br>
-    Berberi: $barber_name<br>
-    Data: $booking_date<br>
-    Ora: $booking_time
-    ";
-
-    sendEmail("admin@yourdomain.com", "Rezervim i ri", $adminMsg);
-
-    respond(array('success'=>true, 'id'=>$first_id));
-}
+    if($first_id > 0) respond(array('success'=>true, 'id'=>$first_id));
     else respond(array('error'=>$db->error), 500);
-}
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
-require 'PHPMailer/src/Exception.php';
-
-function sendEmail($to, $subject, $body){
-    $mail = new PHPMailer(true);
-
-    try {
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com'; // or your SMTP
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'isufselishta57@gmail.com';
-        $mail->Password   = 'mewr iqhk qjfa ehpt';
-        $mail->SMTPSecure = 'tls';
-        $mail->Port       = 587;
-
-        $mail->setFrom('info@kingcuts.com', 'King Cuts');
-        $mail->addAddress($to);
-
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $body;
-
-        $mail->send();
-        return true;
-
-    } catch (Exception $e) {
-        return false;
-    }
 }
 
 if($action === 'update_booking' && $method === 'POST'){
@@ -357,6 +292,70 @@ if($action === 'get_booked_slots' && $method === 'GET'){
     $times = array();
     foreach(array_merge($booked,$blocked) as $r) $times[] = substr($r['booking_time'],0,5);
     respond(array_values(array_unique($times)));
+}
+
+// SEND EMAIL via Resend
+if($action === 'send_email' && $method === 'POST'){
+    $to      = isset($input['to_email'])  ? $input['to_email']  : '';
+    $name    = isset($input['to_name'])   ? $input['to_name']   : '';
+    $service = isset($input['service'])   ? $input['service']   : '';
+    $barber  = isset($input['barber'])    ? $input['barber']    : '';
+    $date    = isset($input['date'])      ? $input['date']      : '';
+    $time    = isset($input['time'])      ? $input['time']      : '';
+    $price   = isset($input['price'])     ? $input['price']     : '';
+
+    if(!$to) respond(array('error'=>'Email mungon'), 400);
+
+    $resend_key = getenv('RESEND_API_KEY') ?: 're_GYbmRiyt_JPvoDraeu4SpyFryr1e4TG88';
+
+    $html_body = "
+    <html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+    <div style='background:#1a1a1a;padding:20px;text-align:center;'>
+        <h1 style='color:#c9a84c;margin:0;'>&#9986; KING CUTS</h1>
+    </div>
+    <div style='padding:30px;background:#f9f9f9;'>
+        <h2 style='color:#333;'>Rezervimi u Konfirmua! &#9989;</h2>
+        <p>Pershendetje <strong>$name</strong>,</p>
+        <p>Rezervimi juaj u konfirmua me sukses. Ja detajet:</p>
+        <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
+            <tr style='background:#c9a84c;color:white;'><td style='padding:10px;'>Sherbimi</td><td style='padding:10px;'><strong>$service</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Berberi</td><td style='padding:10px;'><strong>$barber</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Data</td><td style='padding:10px;'><strong>$date</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Ora</td><td style='padding:10px;'><strong>$time</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Cmimi</td><td style='padding:10px;'><strong>$price</strong></td></tr>
+        </table>
+        <p>Ju presim me padurim!</p>
+    </div>
+    <div style='background:#1a1a1a;padding:15px;text-align:center;'>
+        <p style='color:#c9a84c;margin:0;'>King Cuts &bull; +355 69 123 4567</p>
+    </div>
+    </body></html>";
+
+    $payload = json_encode(array(
+        'from' => 'King Cuts <onboarding@resend.dev>',
+        'to'   => array($to),
+        'subject' => 'Konfirmim Rezervimi - King Cuts',
+        'html' => $html_body
+    ));
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer '.$resend_key,
+        'Content-Type: application/json'
+    ));
+    $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $res = json_decode($result, true);
+    if($http_code === 200 || $http_code === 201){
+        respond(array('success'=>true));
+    } else {
+        respond(array('error'=>'Resend error: '.($res['message'] ?? $result)), 500);
+    }
 }
 
 respond(array('error'=>'Action e panjohur: '.$action), 404);
