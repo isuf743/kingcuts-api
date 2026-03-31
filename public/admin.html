@@ -201,6 +201,9 @@ tr:hover td{background:var(--bg)}
 
       <div class="nav-item" onclick="showSection('schedules')"><span class="nav-icon">🕐</span> Oraret</div>
       <div class="nav-item" onclick="showSection('pricing')"><span class="nav-icon">💰</span> Cmimet</div>
+	  <div class="nav-item" onclick="showSection('logs')">
+  <span class="nav-icon">📜</span> Logs
+</div>
     </nav>
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="doLogout()">⬅ Dilni</button>
@@ -311,6 +314,24 @@ tr:hover td{background:var(--bg)}
 
   </main>
 </div>
+
+<section class="section" id="sec-logs">
+  <div class="page-header">
+    <h1>Logs</h1>
+    <p>Gabimet dhe aktiviteti i sistemit</p>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Loget e fundit</h3>
+      <button class="btn-add" onclick="loadLogs()">🔄 Rifresko</button>
+    </div>
+
+    <div id="logs-table">
+      <div class="loading">Duke ngarkuar...</div>
+    </div>
+  </div>
+</section>
 
 <!-- MODAL: ADD BOOKING -->
 <div class="modal-overlay" id="modal-booking">
@@ -959,7 +980,51 @@ function savePricing(){
   }
 }
 
+async function loadLogs(){
+  const el = document.getElementById('logs-table')
+  el.innerHTML = '<div class="loading">Duke ngarkuar...</div>'
 
+  try{
+    const logs = await apiGet('get_logs')
+
+    if(!logs.length){
+      el.innerHTML = '<div class="empty-state"><p>Nuk ka loge</p></div>'
+      return
+    }
+
+    let html = '<table><thead><tr>'
+    html += '<th>Koha</th><th>Tipi</th><th>Mesazhi</th><th>Detaje</th>'
+    html += '</tr></thead><tbody>'
+
+    logs.forEach(l => {
+      html += '<tr>'
+      html += '<td>'+ (l.time || '-') +'</td>'
+      html += '<td><strong>'+ (l.message || '-') +'</strong></td>'
+      html += '<td>'+ JSON.stringify(l.context?.message || l.context || '-') +'</td>'
+      html += '<td><small>'+ JSON.stringify(l.context || {}) +'</small></td>'
+      html += '</tr>'
+    })
+
+    html += '</tbody></table>'
+
+    el.innerHTML = html
+
+  } catch(e){
+    el.innerHTML = '<div class="empty-state"><p>Gabim gjatë ngarkimit</p></div>'
+  }
+}
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+
+  document.getElementById('sec-'+name).classList.add('active')
+  event.currentTarget.classList.add('active')
+
+  if(name === 'logs'){
+    loadLogs()
+  }
+}
 
 // Load saved data on init
 loadSavedPricing()
