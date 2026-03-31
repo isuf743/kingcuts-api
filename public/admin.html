@@ -996,14 +996,14 @@ async function loadLogs(){
     html += '<th>Koha</th><th>Tipi</th><th>Mesazhi</th><th>Detaje</th>'
     html += '</tr></thead><tbody>'
 
-    logs.forEach(l => {
-      html += '<tr>'
-      html += '<td>'+ (l.time || '-') +'</td>'
-      html += '<td><strong>'+ (l.message || '-') +'</strong></td>'
-      html += '<td>'+ JSON.stringify(l.context?.message || l.context || '-') +'</td>'
-      html += '<td><small>'+ JSON.stringify(l.context || {}) +'</small></td>'
-      html += '</tr>'
-    })
+logs.forEach(l => {
+  html += '<tr>'
+  html += '<td>'+ l.created_at +'</td>'
+  html += '<td><strong>'+ l.level +'</strong></td>'
+  html += '<td>'+ l.message +'</td>'
+  html += '<td><small>'+ JSON.stringify(l.context || {}) +'</small></td>'
+  html += '</tr>'
+})
 
     html += '</tbody></table>'
 

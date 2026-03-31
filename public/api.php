@@ -220,7 +220,25 @@ if($action === 'delete_booking' && $method === 'POST'){
 
     respond(['success'=>true]);
 }
+if($action === 'get_logs' && $method === 'GET'){
+    $db = getDB();
 
+    $result = $db->query("
+        SELECT id, level, message, context, created_at 
+        FROM logs 
+        ORDER BY id DESC 
+        LIMIT 100
+    ");
+
+    $logs = [];
+
+    while($row = $result->fetch_assoc()){
+        $row['context'] = json_decode($row['context'], true);
+        $logs[] = $row;
+    }
+
+    respond($logs);
+}
 // ======================================================
 // ⚠️ UNKNOWN ACTION
 // ======================================================
