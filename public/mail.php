@@ -7,8 +7,9 @@ require 'settings.php';
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 require 'PHPMailer/src/Exception.php';
+require 'logger.php';
 
-function sendEmail($to, $subject, $body){
+ffunction sendEmail($to, $subject, $body){
     $mail = new PHPMailer(true);
 
     try {
@@ -31,6 +32,13 @@ function sendEmail($to, $subject, $body){
         return true;
 
     } catch (Exception $e) {
+
+        logError("MAIL_ERROR", [
+            'to' => $to,
+            'subject' => $subject,
+            'error' => $mail->ErrorInfo
+        ]);
+
         return false;
     }
 }

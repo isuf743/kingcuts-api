@@ -1,12 +1,45 @@
 <?php
-
+logError("REQUEST", [
+    'action' => $action,
+    'method' => $method,
+    'input' => $input
+]);
 require 'settings.php';
 require 'mail.php';
+require 'logger.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+
+
+
+// Catch PHP errors
+set_error_handler(function($severity, $message, $file, $line){
+    logError("PHP_ERROR", [
+        'message' => $message,
+        'file' => $file,
+        'line' => $line
+    ]);
+});
+
+// Catch fatal errors
+register_shutdown_function(function(){
+    $error = error_get_last();
+    if($error !== NULL){
+        logError("FATAL_ERROR", $error);
+    }
+});
+
+// Catch exceptions
+set_exception_handler(function($e){
+    logError("EXCEPTION", [
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+});
 
 // OPTIONS (CORS)
 if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){
@@ -19,7 +52,11 @@ function getDB(){
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
     if($conn->connect_error){
-        respond(['error'=>'DB connection failed'], 500);
+        logError("DB_CONNECTION_ERROR", [
+            'error' => $conn->connect_error
+        ]);
+
+        respond(['error'=>'Database failed'], 500);
     }
 
     $conn->set_charset('utf8');
