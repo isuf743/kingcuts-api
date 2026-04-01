@@ -583,10 +583,12 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
       <div class="qr-section">
         <h4>📱 QR Kodi i Rezervimit</h4>
         <p>Trego këtë kod në sallon për konfirmim të shpejtë</p>
-        <img id="qr-img" width="200" height="200" style="border:3px solid #1a1208;border-radius:4px;display:block;margin:0 auto;" alt="QR Code">
-        <canvas id="qr-canvas" width="200" height="200" style="display:none"></canvas>
+        <img id="qr-img" width="200" height="200" 
+          style="border:3px solid #1a1208;border-radius:4px;display:none;margin:0 auto;background:#f5f0e8;" 
+          alt="QR Code i Rezervimit">
         <br>
-        <a class="qr-download" id="qr-download" download="rezervimi-kingcuts.png" style="opacity:.5;pointer-events:none">⬇ Shkarko QR</a>
+        <a class="qr-download" id="qr-download" download="rezervimi-kingcuts.png" 
+           style="opacity:.5;pointer-events:none" target="_blank">⬇ Shkarko QR</a>
       </div>
       <button class="hero-cta" onclick="resetAll()">&larr; Kthehu ne Faqen Kryesore</button>
       <button class="cancel-btn" onclick="openCancelModal()">✕ Anulo Rezervimin</button>
@@ -964,30 +966,23 @@ function resetAll(){
   goPage('p-home');
 }
 
-// ── QR CODE GENERATOR (Google Chart API) ──
+// ── QR CODE GENERATOR (qr-server.com - funksionon 100%) ──
 function generateQR(text){
-  var canvas = document.getElementById('qr-canvas');
   var img = document.getElementById('qr-img');
+  var dl = document.getElementById('qr-download');
   if(!img) return;
   
-  var encoded = encodeURIComponent(text);
-  var url = 'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl='+encoded+'&choe=UTF-8&chld=M|2';
+  var url = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(text) + '&color=1a1208&bgcolor=ffffff&margin=10&format=png';
   
   img.src = url;
-  img.onload = function(){
-    // Vizato ne canvas per download
-    if(canvas){
-      var ctx = canvas.getContext('2d');
-      canvas.width = 200; canvas.height = 200;
-      ctx.drawImage(img, 0, 0, 200, 200);
-      var dl = document.getElementById('qr-download');
-      if(dl){
-        dl.href = canvas.toDataURL('image/png');
-        dl.style.opacity='1';
-        dl.style.pointerEvents='auto';
-      }
-    }
-  };
+  img.style.display = 'block';
+  
+  if(dl){
+    dl.href = url;
+    dl.style.opacity = '1';
+    dl.style.pointerEvents = 'auto';
+    dl.target = '_blank'; // Hap ne tab te ri si fallback
+  }
 }
 
 function showQRCode(bookingId, service, barber, date, time){
