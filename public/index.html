@@ -294,6 +294,27 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 .modal-btn-back{padding:.8rem 1.8rem;background:#f0ebe0;color:#7a6a50;border:none;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;}
 .cancel-form input{width:100%;padding:.85rem 1rem;border:2px solid #e8d8a8;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;margin-bottom:1rem;outline:none;}
 .cancel-form input:focus{border-color:#c9a84c;}
+
+/* QR CODE */
+.qr-section{
+  margin:1.5rem 0;padding:1.5rem;
+  background:linear-gradient(135deg,#fffbf0,#fff8e1);
+  border:2px solid #e8d8a8;border-radius:8px;text-align:center;
+}
+.qr-section h4{
+  font-family:'Cormorant Garamond',serif;font-size:1.1rem;
+  font-weight:700;color:#1a1208;margin-bottom:.3rem;
+}
+.qr-section p{font-size:.78rem;color:#9e8c70;margin-bottom:1rem;}
+#qr-canvas{border:3px solid #1a1208;border-radius:4px;display:block;margin:0 auto;}
+.qr-download{
+  display:inline-block;margin-top:1rem;padding:.6rem 1.5rem;
+  background:#1a1208;color:#c9a84c;border:none;border-radius:4px;
+  font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  text-decoration:none;transition:background .2s;
+}
+.qr-download:hover{background:#2e2518;}
 </style>
 </head>
 <body>
@@ -558,6 +579,13 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
         <div class="sdet-row"><span>Data</span><span id="s-date">--</span></div>
         <div class="sdet-row"><span>Ora</span><span id="s-time">--</span></div>
         <div class="sdet-row"><span>Cmimi</span><span id="s-price">--</span></div>
+      </div>
+      <div class="qr-section">
+        <h4>📱 QR Kodi i Rezervimit</h4>
+        <p>Trego këtë kod në sallon për konfirmim të shpejtë</p>
+        <canvas id="qr-canvas" width="180" height="180"></canvas>
+        <br>
+        <a class="qr-download" id="qr-download" download="rezervimi-kingcuts.png">⬇ Shkarko QR</a>
       </div>
       <button class="hero-cta" onclick="resetAll()">&larr; Kthehu ne Faqen Kryesore</button>
       <button class="cancel-btn" onclick="openCancelModal()">✕ Anulo Rezervimin</button>
@@ -869,6 +897,8 @@ function submitBooking(){
       .catch(function(e){console.log('Email error:',e);});
   }
   goPage('p-success');
+  // Gjenero QR pas rezervimit
+  showQRCode(lastBookingId, booking.service, booking.barber, selDateLabel, selSlot);
 }
 
 function setRating(val){
@@ -933,6 +963,77 @@ function resetAll(){
   goPage('p-home');
 }
 
+// ── QR CODE GENERATOR ──
+function generateQR(text){
+  var canvas = document.getElementById('qr-canvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var size = 180;
+  canvas.width = size; canvas.height = size;
+
+  // Perdor qrcode.js library
+  if(typeof QRCode !== 'undefined'){
+    canvas.width = size; canvas.height = size;
+    QRCode.toCanvas(canvas, text, {
+      width: size, margin: 2,
+      color:{dark:'#1a1208', light:'#ffffff'}
+    }, function(err){
+      if(!err){
+        var dl = document.getElementById('qr-download');
+        if(dl) dl.href = canvas.toDataURL('image/png');
+      }
+    });
+  } else {
+    // Fallback - vizato QR manual te thjesht
+    drawSimpleQR(ctx, text, size);
+    var dl = document.getElementById('qr-download');
+    if(dl) dl.href = canvas.toDataURL('image/png');
+  }
+}
+
+function drawSimpleQR(ctx, text, size){
+  // Pattern i thjesht vizual (jo QR i vertete - perdoret vetem si fallback)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#1a1208';
+
+  // Koder te dhenat si bit pattern
+  var hash = 0;
+  for(var i=0;i<text.length;i++) hash = ((hash<<5)-hash)+text.charCodeAt(i)|0;
+
+  var cells = 21;
+  var cell = Math.floor(size/cells);
+  var offset = (size - cells*cell)/2;
+
+  // Finder patterns (3 këndet)
+  function finder(x,y){
+    ctx.fillRect(offset+x*cell, offset+y*cell, 7*cell, 7*cell);
+    ctx.fillStyle='#fff';
+    ctx.fillRect(offset+(x+1)*cell, offset+(y+1)*cell, 5*cell, 5*cell);
+    ctx.fillStyle='#1a1208';
+    ctx.fillRect(offset+(x+2)*cell, offset+(y+2)*cell, 3*cell, 3*cell);
+  }
+  finder(0,0); finder(14,0); finder(0,14);
+
+  // Data modules bazuar ne hash
+  var r = Math.abs(hash);
+  for(var row=0;row<cells;row++){
+    for(var col=0;col<cells;col++){
+      if((row<8&&col<8)||(row<8&&col>12)||(row>12&&col<8)) continue;
+      r = (r*1664525+1013904223)|0;
+      if((r>>>1)%2===0){
+        ctx.fillStyle='#1a1208';
+        ctx.fillRect(offset+col*cell, offset+row*cell, cell, cell);
+      }
+    }
+  }
+}
+
+function showQRCode(bookingId, service, barber, date, time){
+  var text = 'KINGCUTS|ID:'+bookingId+'|'+service+'|'+barber+'|'+date+'|'+time;
+  setTimeout(function(){ generateQR(text); }, 300);
+}
+
 // ── ANULIM REZERVIMI ──
 var lastBookingId = 0;
 
@@ -950,17 +1051,14 @@ function confirmCancel(){
   var phone = document.getElementById('cancel-phone').value.trim();
   var msg = document.getElementById('cancel-msg');
   if(!phone){ msg.textContent='Shkruaj numrin e telefonit!'; msg.style.display='block'; return; }
-  // Normalizoj numrin
   phone = phone.replace(/[^0-9+]/g,'');
   if(phone.charAt(0)==='0') phone = '+355'+phone.substring(1);
   if(phone.indexOf('355')===0) phone = '+'+phone;
   if(!lastBookingId){ msg.textContent='Rezervimi nuk u gjet!'; msg.style.display='block'; return; }
-
   msg.style.display = 'none';
   fetch('https://kingcuts-api-production.up.railway.app/api.php?action=cancel_booking_client',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({id: lastBookingId, phone: phone})
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:lastBookingId, phone:phone})
   }).then(function(r){return r.json();})
   .then(function(res){
     if(res.success){
@@ -971,16 +1069,12 @@ function confirmCancel(){
       msg.textContent = res.error || 'Numri i telefonit nuk përputhet!';
       msg.style.display = 'block';
     }
-  }).catch(function(){
-    msg.textContent = 'Gabim lidhje!';
-    msg.style.display = 'block';
-  });
+  }).catch(function(){ msg.textContent='Gabim lidhje!'; msg.style.display='block'; });
 }
 
-// Ngarko reviews nga DB kur hapet faqja
+// Ngarko reviews dhe fshih loading screen
 window.addEventListener('load', function(){
   loadReviews();
-  // Fshih loading screen
   setTimeout(function(){
     var ls = document.getElementById('loading-screen');
     if(ls) ls.classList.add('hidden');
@@ -988,5 +1082,6 @@ window.addEventListener('load', function(){
 });
 
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </body>
 </html>
