@@ -155,6 +155,42 @@ tr:hover td{background:var(--bg)}
 .loading{text-align:center;padding:2rem;color:var(--muted);font-style:italic}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* NOTIFICATIONS */
+.notif-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--red);color:#fff;font-size:.65rem;font-weight:800;
+  width:18px;height:18px;border-radius:50%;margin-left:auto;
+  animation:pulse 1.5s infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+.notif-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--red);
+  position:absolute;top:8px;right:8px;animation:pulse 1.5s infinite;
+  display:none;
+}
+
+/* TOAST NOTIFICATION */
+.notif-popup{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:#fff;border:2px solid var(--gold);border-radius:8px;
+  padding:1rem 1.2rem;box-shadow:0 8px 30px rgba(0,0,0,.15);
+  max-width:320px;z-index:9999;
+  transform:translateX(400px);transition:transform .4s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:flex-start;gap:.8rem;
+}
+.notif-popup.show{transform:translateX(0);}
+.notif-popup-icon{font-size:1.5rem;flex-shrink:0;}
+.notif-popup-title{font-weight:700;font-size:.9rem;color:var(--dark);margin-bottom:.2rem;}
+.notif-popup-body{font-size:.8rem;color:var(--muted);}
+.notif-popup-close{position:absolute;top:.5rem;right:.7rem;background:none;border:none;font-size:1rem;cursor:pointer;color:var(--muted);}
+.notif-sound-btn{
+  position:fixed;top:1rem;right:1rem;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);
+  border-radius:20px;padding:.3rem .8rem;font-size:.75rem;cursor:pointer;
+  z-index:100;transition:all .2s;
+}
+.notif-sound-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
 </style>
 </head>
 <body>
@@ -175,6 +211,16 @@ tr:hover td{background:var(--bg)}
 </div>
 
 <!-- APP -->
+<!-- NOTIFICATION POPUP -->
+<div class="notif-popup" id="notif-popup">
+  <button class="notif-popup-close" onclick="closeNotif()">✕</button>
+  <div class="notif-popup-icon">🔔</div>
+  <div>
+    <div class="notif-popup-title" id="notif-title">Rezervim i Ri!</div>
+    <div class="notif-popup-body" id="notif-body">Klient i ri ka bërë rezervim.</div>
+  </div>
+</div>
+
 <div class="app" id="app">
 
   <!-- SIDEBAR -->
@@ -185,7 +231,7 @@ tr:hover td{background:var(--bg)}
     </div>
     <nav class="sidebar-nav">
       <div class="nav-item active" onclick="showSection('stats')"><span class="nav-icon">📊</span> Statistika</div>
-      <div class="nav-item" onclick="showSection('bookings')"><span class="nav-icon">📅</span> Rezervimet</div>
+      <div class="nav-item" onclick="showSection('bookings')"><span class="nav-icon">📅</span> Rezervimet <span class="notif-badge" id="notif-badge" style="display:none">0</span></div>
       <div class="nav-item" onclick="showSection('barbers')"><span class="nav-icon">💈</span> Berberat</div>
 
       <div class="nav-item" onclick="showSection('schedules')"><span class="nav-icon">🕐</span> Oraret</div>
@@ -619,6 +665,7 @@ async function updateBooking(id, status){
   const filtered = currentFilter==='all' ? allBookings : allBookings.filter(b=>b.status===currentFilter)
   renderBookings(filtered)
   loadStats()
+  startNotifPolling()
 }
 
 async function deleteBooking(id){
@@ -631,6 +678,7 @@ async function deleteBooking(id){
   const filtered = currentFilter==='all' ? allBookings : allBookings.filter(b=>b.status===currentFilter)
   renderBookings(filtered)
   loadStats()
+  startNotifPolling()
 }
 
 // ADD BOOKING
@@ -940,6 +988,93 @@ async function deleteAccount(id){
   await api('delete_barber_account', {id})
   loadAccounts()
 }
+
+// ── NOTIFICATIONS SYSTEM ──
+var lastBookingId = 0;
+var notifEnabled = true;
+var notifInterval = null;
+
+function startNotifPolling(){
+  // Merr ID-n e fundit fillimisht
+  apiGet('get_bookings').then(function(rows){
+    if(rows && rows.length > 0){
+      lastBookingId = Math.max(...rows.map(r=>parseInt(r.id)||0));
+    }
+  }).catch(function(){});
+  
+  // Kontrollo cdo 30 sekonda
+  notifInterval = setInterval(checkNewBookings, 30000);
+}
+
+async function checkNewBookings(){
+  try{
+    const rows = await apiGet('get_bookings');
+    if(!rows || !rows.length) return;
+    
+    const newRows = rows.filter(r => parseInt(r.id) > lastBookingId);
+    if(newRows.length > 0){
+      lastBookingId = Math.max(...rows.map(r=>parseInt(r.id)||0));
+      newRows.forEach(function(r){ showNotifPopup(r); });
+      updateNotifBadge(rows.filter(r=>r.status==='pending').length);
+      // Rifresko booking table nese eshte aktiv
+      var sec = document.getElementById('sec-bookings');
+      if(sec && sec.classList.contains('active')) loadBookings();
+    }
+  } catch(e){}
+}
+
+function updateNotifBadge(count){
+  var badge = document.getElementById('notif-badge');
+  if(!badge) return;
+  if(count > 0){
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showNotifPopup(booking){
+  var popup = document.getElementById('notif-popup');
+  document.getElementById('notif-title').textContent = '🔔 Rezervim i Ri!';
+  document.getElementById('notif-body').textContent = 
+    (booking.client_name||'Klient') + ' — ' + 
+    (booking.service_name||'') + ' — ' + 
+    (booking.booking_date||'') + ' ' + 
+    ((booking.booking_time||'').substring(0,5));
+  
+  popup.classList.add('show');
+  
+  // Luaj sound nese ka leje
+  playNotifSound();
+  
+  // Fshih pas 6 sekondave
+  setTimeout(function(){ popup.classList.remove('show'); }, 6000);
+}
+
+function closeNotif(){
+  document.getElementById('notif-popup').classList.remove('show');
+}
+
+function playNotifSound(){
+  try{
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e){}
+}
+
+// Fillo polling kur hapet app
+var _origShowApp = showApp;
 </script>
 </body>
 </html>
