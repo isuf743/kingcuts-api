@@ -2,17 +2,21 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){ http_response_code(200); exit; }
 header('Access-Control-Allow-Headers: Content-Type');
 error_reporting(0);
 ini_set('display_errors', 0);
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'kingcuts_db');
+define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+define('DB_USER', getenv('MYSQLUSER') ?: 'root');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: '');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'kingcuts_db');
 
 function getDB(){
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $port = intval(getenv('MYSQLPORT') ?: 3306);
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, $port);
     if($conn->connect_error){
         http_response_code(500);
         echo json_encode(array('error'=>'DB error: '.$conn->connect_error));
@@ -244,6 +248,48 @@ if($action === 'get_booked_slots' && $method === 'GET'){
     $times = array();
     foreach(array_merge($booked,$blocked) as $r) $times[] = substr($r['booking_time'],0,5);
     respond(array_values(array_unique($times)));
+}
+
+
+// SEND EMAIL via Resend
+if($action === 'send_email' && $method === 'POST'){
+    $to      = isset($input['to_email'])  ? $input['to_email']  : '';
+    $name    = isset($input['to_name'])   ? $input['to_name']   : '';
+    $service = isset($input['service'])   ? $input['service']   : '';
+    $barber  = isset($input['barber'])    ? $input['barber']    : '';
+    $date    = isset($input['date'])      ? $input['date']      : '';
+    $time    = isset($input['time'])      ? $input['time']      : '';
+    $price   = isset($input['price'])     ? $input['price']     : '';
+    if(!$to) respond(array('error'=>'Email mungon'), 400);
+    $resend_key = getenv('RESEND_API_KEY') ?: 're_GYbmRiyt_JPvoDraeu4SpyFryr1e4TG88';
+    $html_body = "<html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+    <div style='background:#1a1a1a;padding:20px;text-align:center;'><h1 style='color:#c9a84c;margin:0;'>&#9986; KING CUTS</h1></div>
+    <div style='padding:30px;background:#f9f9f9;'>
+        <h2 style='color:#333;'>Rezervimi u Konfirmua! &#9989;</h2>
+        <p>Pershendetje <strong>$name</strong>,</p>
+        <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
+            <tr style='background:#c9a84c;color:white;'><td style='padding:10px;'>Sherbimi</td><td style='padding:10px;'><strong>$service</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Berberi</td><td style='padding:10px;'><strong>$barber</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Data</td><td style='padding:10px;'><strong>$date</strong></td></tr>
+            <tr style='background:#fff;'><td style='padding:10px;'>Ora</td><td style='padding:10px;'><strong>$time</strong></td></tr>
+            <tr style='background:#f5f5f5;'><td style='padding:10px;'>Cmimi</td><td style='padding:10px;'><strong>$price</strong></td></tr>
+        </table>
+        <p>Ju presim me padurim!</p>
+    </div>
+    <div style='background:#1a1a1a;padding:15px;text-align:center;'><p style='color:#c9a84c;margin:0;'>King Cuts &bull; +355 69 123 4567</p></div>
+    </body></html>";
+    $payload = json_encode(array('from'=>'King Cuts <onboarding@resend.dev>','to'=>array($to),'subject'=>'Konfirmim Rezervimi - King Cuts','html'=>$html_body));
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer '.$resend_key,'Content-Type: application/json'));
+    $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    $res = json_decode($result, true);
+    if($http_code === 200 || $http_code === 201) respond(array('success'=>true));
+    else respond(array('error'=>'Email error: '.($res['message'] ?? $result)), 500);
 }
 
 respond(array('error'=>'Action e panjohur: '.$action), 404);
