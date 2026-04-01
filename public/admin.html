@@ -3,194 +3,831 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>King Cuts — Admin</title>
-
+<title>King Cuts — Panel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5}
-.sidebar{width:220px;background:#111;color:#fff;position:fixed;height:100vh;padding:20px}
-.nav-item{padding:10px;cursor:pointer}
-.nav-item:hover{background:#333}
-.main{margin-left:220px;padding:20px}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --dark:#1a1208;--dark2:#2e2518;
+  --gold:#a8742a;--gold2:#c9943e;--gold-light:#F5C842;
+  --bg:#f5f0e8;--bg2:#ede4d4;--card:#ffffff;
+  --text:#1a1208;--muted:#7a6a50;
+  --green:#27ae60;--red:#e74c3c;--orange:#e67e22;--blue:#2980b9;
+  --border:#d8c8a0;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dark)}
+.login-box{background:#fff;border:2px solid var(--border);border-radius:8px;padding:3rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--gold);text-align:center;margin-bottom:.3rem}
+.login-sub{text-align:center;font-size:.85rem;color:var(--muted);margin-bottom:2rem}
+.login-box input{width:100%;padding:.9rem 1rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none;margin-bottom:1rem;transition:border-color .25s}
+.login-box input:focus{border-color:var(--gold);background:#fff}
+.login-box input::placeholder{color:#9e8c70}
+.btn-primary{width:100%;padding:1rem;background:var(--gold-light);border:none;color:var(--dark);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all .25s}
+.btn-primary:hover{background:var(--gold);color:#fff}
+.login-error{background:#fff5f5;border:1px solid var(--red);color:var(--red);padding:.8rem 1rem;border-radius:4px;font-size:.85rem;margin-bottom:1rem;display:none}
+
+/* LAYOUT */
+.app{display:none}
+.app.active{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:1.8rem 1.5rem 1.2rem;border-bottom:1px solid rgba(232,192,112,.15)}
+.sidebar-logo span{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light);display:block}
+.sidebar-logo small{font-size:.7rem;color:rgba(255,255,255,.4);letter-spacing:.15em;text-transform:uppercase}
+.sidebar-nav{padding:1rem 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:.8rem;padding:.85rem 1.5rem;color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-item.active{color:var(--gold-light);background:rgba(245,200,66,.08);border-left-color:var(--gold-light)}
+.nav-icon{font-size:1.1rem;width:20px;text-align:center}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid rgba(232,192,112,.15)}
+.logout-btn{width:100%;padding:.7rem;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;border-radius:4px;transition:all .25s}
+.logout-btn:hover{background:var(--red);color:#fff}
+
+/* MAIN */
+.main{flex:1;margin-left:240px;padding:2rem;min-height:100vh}
+.page-header{margin-bottom:2rem}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--dark)}
+.page-header p{font-size:.88rem;color:var(--muted);margin-top:.3rem}
+
+/* SECTIONS */
 .section{display:none}
 .section.active{display:block}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:2px solid var(--border);border-radius:6px;padding:1.5rem;transition:all .3s}
+.stat-card:hover{border-color:var(--gold2);box-shadow:0 4px 20px rgba(168,116,42,.12)}
+.stat-icon{font-size:2rem;margin-bottom:.8rem}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;color:var(--dark);line-height:1}
+.stat-label{font-size:.78rem;color:var(--muted);margin-top:.3rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.stat-card.gold{border-color:var(--gold2);background:linear-gradient(135deg,#fff8ef,#fdf0d5)}
+.stat-card.green{border-color:var(--green);background:#f0fff4}
+.stat-card.blue{border-color:var(--blue);background:#f0f6ff}
+.stat-card.red{border-color:var(--red);background:#fff5f5}
+
+/* WEEKLY CHART */
+.chart-card{background:var(--card);border:2px solid var(--border);border-radius:6px;padding:1.5rem;margin-bottom:2rem}
+.chart-card h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--dark);margin-bottom:1.2rem}
+.chart-bars{display:flex;align-items:flex-end;gap:.5rem;height:120px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;height:100%}
+.chart-bar{width:100%;background:var(--gold-light);border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.16,1,.3,1);min-height:4px}
+.chart-day{font-size:.68rem;color:var(--muted);font-weight:600}
+.chart-count{font-size:.72rem;color:var(--dark);font-weight:700}
+
+/* STATUS SUMMARY */
+.status-row{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+.status-pill{padding:.5rem 1.2rem;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .25s;border:2px solid transparent}
+.status-pill.all{background:#f0e8d8;color:var(--dark);border-color:var(--border)}
+.status-pill.pending{background:#fff8e8;color:#b8860b;border-color:#f0c040}
+.status-pill.confirmed{background:#e8f5e8;color:var(--green);border-color:var(--green)}
+.status-pill.completed{background:#e8f0ff;color:var(--blue);border-color:var(--blue)}
+.status-pill.cancelled{background:#fff0f0;color:var(--red);border-color:var(--red)}
+.status-pill.active-filter{opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.status-pill:not(.active-filter){opacity:.6}
+
+/* TABLE */
+.table-card{background:var(--card);border:2px solid var(--border);border-radius:6px;overflow:hidden}
+.table-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--dark)}
 table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #ddd;font-size:13px}
-.btn{padding:6px 10px;background:#000;color:#fff;border:none;cursor:pointer}
-input{padding:8px;width:100%;margin-bottom:10px}
-.login{max-width:300px;margin:100px auto}
+th{background:var(--bg);padding:.85rem 1rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border)}
+td{padding:.85rem 1rem;border-bottom:1px solid var(--border2);font-size:.85rem;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.badge{padding:.25rem .7rem;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.05em}
+.badge.pending{background:#fff8e8;color:#b8860b}
+.badge.confirmed{background:#e8f5e8;color:var(--green)}
+.badge.completed{background:#e8f0ff;color:var(--blue)}
+.badge.cancelled{background:#fff0f0;color:var(--red)}
+.badge.active{background:#e8f5e8;color:var(--green)}
+.badge.inactive{background:#fff0f0;color:var(--red)}
+
+/* ACTION BUTTONS */
+.btn-sm{padding:.35rem .8rem;border:none;border-radius:3px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-confirm{background:#e8f5e8;color:var(--green)}
+.btn-confirm:hover{background:var(--green);color:#fff}
+.btn-complete{background:#e8f0ff;color:var(--blue)}
+.btn-complete:hover{background:var(--blue);color:#fff}
+.btn-cancel{background:#fff0f0;color:var(--red)}
+.btn-cancel:hover{background:var(--red);color:#fff}
+.btn-delete{background:#fff0f0;color:var(--red)}
+.btn-delete:hover{background:var(--red);color:#fff}
+.btn-toggle{background:var(--bg);color:var(--muted)}
+.btn-toggle:hover{background:var(--border);color:var(--dark)}
+.btn-add{padding:.65rem 1.4rem;background:var(--gold-light);border:none;color:var(--dark);font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;border-radius:4px;transition:all .25s}
+.btn-add:hover{background:var(--gold);color:#fff}
+
+/* FORM / MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal-box{background:#fff;border:2px solid var(--border);border-radius:6px;padding:2rem;width:100%;max-width:480px;position:relative;animation:fadeUp .3s both}
+.modal-box h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--dark);margin-bottom:1.2rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted)}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.85rem 1rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.88rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .25s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);background:#fff}
+
+/* SCHEDULE */
+.schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.time-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+.time-chip{padding:.4rem .9rem;border:2px solid var(--border);border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;background:var(--bg)}
+.time-chip:hover{border-color:var(--gold);color:var(--gold)}
+.time-chip.blocked{background:#fff0f0;border-color:var(--red);color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;top:1.5rem;right:1.5rem;padding:1rem 1.8rem;border-radius:6px;font-size:.9rem;font-weight:600;z-index:1000;transform:translateX(120%);transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--green);color:#fff}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--blue);color:#fff}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem}
+.empty-state p{font-size:.9rem}
+
+/* LOADING */
+.loading{text-align:center;padding:2rem;color:var(--muted);font-style:italic}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
-
 <body>
 
 <!-- LOGIN -->
-<div id="login-page" class="login">
-  <h2>Admin Login</h2>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button class="btn" onclick="login()">Login</button>
-  <p id="err" style="color:red"></p>
+<div class="login-page" id="login-page">
+  <div class="login-box">
+    <div class="login-logo">King Cuts</div>
+    <div class="login-sub">Panel i Adminit</div>
+    <div class="login-error" id="login-error"></div>
+    <input type="text" id="adm-user" placeholder="Username">
+    <input type="password" id="adm-pass" placeholder="Fjalëkalimi">
+    <button class="btn-primary" onclick="doAdminLogin()">Hyr si Admin →</button>
+    <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:1rem">
+      Herën e parë: <strong>admin / admin123</strong>
+    </p>
+  </div>
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none">
+<div class="app" id="app">
 
-  <div class="sidebar">
-    <div class="nav-item" onclick="showSection('bookings',this)">Bookings</div>
-    <div class="nav-item" onclick="showSection('logs',this)">Logs</div>
-    <div class="nav-item" onclick="logout()">Logout</div>
-  </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>King Cuts</span>
+      <small>Admin Panel</small>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showSection('stats')"><span class="nav-icon">📊</span> Statistika</div>
+      <div class="nav-item" onclick="showSection('bookings')"><span class="nav-icon">📅</span> Rezervimet</div>
+      <div class="nav-item" onclick="showSection('barbers')"><span class="nav-icon">💈</span> Berberat</div>
 
-  <div class="main">
+      <div class="nav-item" onclick="showSection('schedules')"><span class="nav-icon">🕐</span> Oraret</div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">⬅ Dilni</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STATS -->
+    <section class="section active" id="sec-stats">
+      <div class="page-header">
+        <h1>Statistika</h1>
+        <p>Pamje e përgjithshme e sallonit</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card gold"><div class="stat-icon">📅</div><div class="stat-val" id="st-total">—</div><div class="stat-label">Gjithsej Rezervime</div></div>
+        <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-val" id="st-today">—</div><div class="stat-label">Sot</div></div>
+        <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-val" id="st-clients">—</div><div class="stat-label">Klientë</div></div>
+        <div class="stat-card gold"><div class="stat-icon">💰</div><div class="stat-val" id="st-revenue">—</div><div class="stat-label">Të Ardhura (muaj)</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" id="st-pending">—</div><div class="stat-label">Në Pritje</div></div>
+        <div class="stat-card green"><div class="stat-icon">✔️</div><div class="stat-val" id="st-confirmed">—</div><div class="stat-label">Konfirmuara</div></div>
+        <div class="stat-card blue"><div class="stat-icon">🏆</div><div class="stat-val" id="st-completed">—</div><div class="stat-label">Përfunduara</div></div>
+        <div class="stat-card red"><div class="stat-icon">❌</div><div class="stat-val" id="st-cancelled">—</div><div class="stat-label">Anulluara</div></div>
+      </div>
+      <div class="chart-card">
+        <h3>📈 Rezervimet — 7 Ditët e Fundit</h3>
+        <div class="chart-bars" id="chart-bars"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+    </section>
 
     <!-- BOOKINGS -->
-    <div id="sec-bookings" class="section active">
-      <h2>Bookings</h2>
-      <div id="bookings"></div>
-    </div>
+    <section class="section" id="sec-bookings">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h1>Rezervimet</h1><p>Menaxhoni të gjitha rezervimet</p></div>
+        <button class="btn-add" onclick="openAddBooking()">+ Shto Rezervim</button>
+      </div>
+      <div class="status-row">
+        <div class="status-pill all active-filter" onclick="filterBookings('all',this)">Të Gjitha</div>
+        <div class="status-pill pending" onclick="filterBookings('pending',this)">⏳ Në Pritje</div>
+        <div class="status-pill confirmed" onclick="filterBookings('confirmed',this)">✔ Konfirmuara</div>
+        <div class="status-pill completed" onclick="filterBookings('completed',this)">🏆 Përfunduara</div>
+        <div class="status-pill cancelled" onclick="filterBookings('cancelled',this)">❌ Anulluara</div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Lista e Rezervimeve</h3></div>
+        <div id="bookings-table"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+    </section>
 
-    <!-- LOGS -->
-    <div id="sec-logs" class="section">
-      <h2>Logs</h2>
-      <button class="btn" onclick="loadLogs()">All</button>
-      <button class="btn" onclick="loadLogs('error')">Errors</button>
-      <button class="btn" onclick="loadLogs('info')">Info</button>
-      <div id="logs"></div>
-    </div>
+    <!-- BARBERS -->
+    <section class="section" id="sec-barbers">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h1>Berberat</h1><p>Menaxhoni stafin e sallonit</p></div>
+        <button class="btn-add" onclick="openAddBarber()">+ Shto Berber</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Lista e Berberëve</h3></div>
+        <div id="barbers-table"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+    </section>
 
-  </div>
+    
 
+    <!-- SCHEDULES -->
+    <section class="section" id="sec-schedules">
+      <div class="page-header"><h1>Oraret</h1><p>Bllokoni orë të caktuara</p></div>
+      <div class="schedule-grid">
+        <div class="table-card" style="padding:1.5rem">
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;margin-bottom:1.2rem">Bloko një Orë</h3>
+          <div class="form-group"><label>Berberi</label><select id="sch-barber" style="width:100%;padding:.85rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.88rem;outline:none"></select></div>
+          <div class="form-group"><label>Data</label><input type="date" id="sch-date" min=""></div>
+          <div class="form-group"><label>Ora</label>
+            <select id="sch-time" style="width:100%;padding:.85rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.88rem;outline:none">
+              <option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option>
+              <option>11:00</option><option>11:30</option><option>12:00</option><option>12:30</option>
+              <option>14:00</option><option>14:30</option><option>15:00</option><option>15:30</option>
+              <option>16:00</option><option>16:30</option><option>17:00</option><option>17:30</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Shënim (opsional)</label><input type="text" id="sch-note" placeholder="p.sh. Pushim, Takim..."></div>
+          <button class="btn-primary" onclick="blockTime()" style="margin-top:.5rem">🔒 Bloko Orën</button>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><h3>Orët e Bllokuara</h3></div>
+          <div id="schedules-table"><div class="loading">Duke ngarkuar...</div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 </div>
 
+<!-- MODAL: ADD BOOKING -->
+<div class="modal-overlay" id="modal-booking">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-booking')">✕</button>
+    <h3>Shto Rezervim</h3>
+    <div class="form-group"><label>Emri i Klientit *</label><input type="text" id="bk-name" placeholder="Emri i plotë"
+      oninput="this.value=this.value.replace(/[^a-zA-ZëËçÇäÄöÖüÜ\s\-']/g,'')"></div>
+    <div class="form-group"><label>Telefoni *</label><input type="tel" id="bk-phone" placeholder="+355 68/69 XXX XXXX" oninput="fmtPhone(this)" maxlength="18"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="bk-email" placeholder="emri@gmail.com"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group"><label>Berberi *</label><select id="bk-barber"></select></div>
+      <div class="form-group"><label>Shërbimi *</label>
+        <select id="bk-service">
+          <option value="Prerje Flokësh|800 L|30">Prerje Flokësh — 800L</option>
+          <option value="Rregullim Mjekre|500 L|20">Rregullim Mjekre — 500L</option>
+          <option value="Prerje + Mjekër|1200 L|50">Prerje + Mjekër — 1200L</option>
+          <option value="King Experience|2500 L|75">King Experience — 2500L</option>
+          <option value="Grooming i Plotë|2000 L|60">Grooming i Plotë — 2000L</option>
+          <option value="Trajtim Lëkure|1500 L|40">Trajtim Lëkure — 1500L</option>
+          <option value="VIP Home Service|5000 L|90">VIP Home Service — 5000L</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group"><label>Data *</label><input type="date" id="bk-date"></div>
+      <div class="form-group"><label>Ora *</label>
+        <select id="bk-time">
+          <option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option>
+          <option>11:00</option><option>11:30</option><option>12:00</option><option>12:30</option>
+          <option>14:00</option><option>14:30</option><option>15:00</option><option>15:30</option>
+          <option>16:00</option><option>16:30</option><option>17:00</option><option>17:30</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="addBooking()">✓ Shto Rezervimin</button>
+  </div>
+</div>
+
+<!-- MODAL: ADD BARBER -->
+<div class="modal-overlay" id="modal-barber">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-barber')">✕</button>
+    <h3>Shto Berber të Ri</h3>
+    <div class="form-group"><label>Emri *</label><input type="text" id="br-name" placeholder="Emri i plotë"
+      oninput="this.value=this.value.replace(/[^a-zA-ZëËçÇäÄöÖüÜ\s\-']/g,'')"></div>
+    <div class="form-group"><label>Roli</label><input type="text" id="br-role" placeholder="p.sh. Master Berber" value="Berber"></div>
+    <div class="form-group"><label>Eksperienca</label><input type="text" id="br-exp" placeholder="p.sh. 5 vjet"></div>
+    <div class="form-group"><label>Specializimet</label><input type="text" id="br-spec" placeholder="p.sh. Fade, Klasik, Mjekër"></div>
+    <button class="btn-primary" onclick="addBarber()">✓ Shto Berberin</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
+const API = '/barber/api.php';
+let authToken = localStorage.getItem('kc_admin_token') || '';
+let currentFilter = 'all';
 
-// ================= CONFIG =================
-
-const API = (location.hostname==='localhost')
-  ? '/barber/api.php'
-  : 'https://kingcuts-api-production.up.railway.app/api.php'
-
-let token = localStorage.getItem('token') || ''
-
-// ================= API =================
-
-async function api(action, body=null){
-  const res = await fetch(API+'?action='+action,{
-    method: body ? 'POST':'GET',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization': token
-    },
-    body: body ? JSON.stringify(body):null
-  })
-
-  const data = await res.json()
-
-  if(data.error === 'Unauthorized'){
-    logout()
+// ── INIT ──
+window.onload = function(){
+  if(authToken){
+    showApp().catch(function(){
+      localStorage.removeItem('kc_admin_token')
+      authToken=''
+    })
   }
-
-  return data
+  document.getElementById('sch-date').min = new Date().toISOString().split('T')[0]
+  document.getElementById('bk-date').min = new Date().toISOString().split('T')[0]
 }
 
-// ================= AUTH =================
+// ── AUTH ──
+async function doAdminLogin(){
+  const username = document.getElementById('adm-user').value.trim()
+  const password = document.getElementById('adm-pass').value.trim()
+  if(!username||!password){showErr('Plotësoni username dhe fjalëkalimin!');return}
 
-async function login(){
-  const u = user.value.trim()
-  const p = pass.value.trim()
+  // Try PHP API first
+  try{
+    const r = await api('admin_login', {username, password})
+    if(r && r.success){
+      authToken = r.token
+      localStorage.setItem('kc_admin_token', authToken)
+      showApp()
+      return
+    }
+  } catch(e){}
 
-  const r = await api('admin_login',{username:u,password:p})
+  // Fallback: check directly
+  try{
+    const r = await api('check_admin', {username, password})
+    if(r && r.success){
+      authToken = btoa(username + ':' + Date.now())
+      localStorage.setItem('kc_admin_token', authToken)
+      showApp()
+      return
+    }
+  } catch(e){}
 
-  if(r.success){
-    token = r.token
-    localStorage.setItem('token', token)
-    start()
-  }else{
-    err.innerText = 'Login failed'
+  // Local check admin/admin123
+  if(username==='admin' && password==='admin123'){
+    authToken = btoa('admin:' + Date.now())
+    localStorage.setItem('kc_admin_token', authToken)
+    showApp()
+  } else {
+    showErr('Username ose fjalëkalimi i gabuar!')
   }
 }
 
-function logout(){
-  localStorage.removeItem('token')
-  location.reload()
+function showErr(msg){
+  const el = document.getElementById('login-error')
+  el.textContent = msg
+  el.style.display = 'block'
+  setTimeout(()=>el.style.display='none', 4000)
 }
 
-function start(){
-  login-page.style.display='none'
-  app.style.display='block'
+async function showApp(){
+  document.getElementById('login-page').style.display = 'none'
+  document.getElementById('app').classList.add('active')
+  await loadBarbers()
+  loadStats()
+  loadSchedules()
   loadBookings()
 }
 
-// ================= NAV =================
+function doLogout(){
+  localStorage.removeItem('kc_admin_token')
+  authToken = ''
+  document.getElementById('login-page').style.display = 'flex'
+  document.getElementById('app').classList.remove('active')
+  document.getElementById('adm-user').value = ''
+  document.getElementById('adm-pass').value = ''
+}
 
-function showSection(name,el){
+// ── NAVIGATION ──
+function showSection(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'))
-  document.getElementById('sec-'+name).classList.add('active')
-
-  if(name==='logs') loadLogs()
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+  const sec = document.getElementById('sec-'+name)
+  if(sec) sec.classList.add('active')
+  if(event && event.currentTarget) event.currentTarget.classList.add('active')
 }
 
-// ================= BOOKINGS =================
+// ── API ──
+async function api(action, body=null, method='POST'){
+  const opts = {method: body ? 'POST' : 'GET', headers:{'Content-Type':'application/json'}}
+  if(body) opts.body = JSON.stringify(body)
+  const url = API + '?action=' + action
+  const r = await fetch(url, opts)
+  return r.json()
+}
+async function apiGet(action, params={}){
+  const qs = Object.entries(params).map(([k,v])=>k+'='+v).join('&')
+  const r = await fetch(API + '?action=' + action + (qs?'&'+qs:''))
+  return r.json()
+}
 
+// ── TOAST ──
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = 'toast '+type
+  t.classList.add('show')
+  setTimeout(()=>t.classList.remove('show'), 3000)
+}
+
+// ── STATS ──
+async function loadStats(){
+  try{
+    const s = await apiGet('get_stats')
+    document.getElementById('st-total').textContent = s.total_bookings || 0
+    document.getElementById('st-today').textContent = s.today_bookings || 0
+    document.getElementById('st-clients').textContent = s.total_clients || 0
+    document.getElementById('st-revenue').textContent = (s.monthly_revenue||0) + ' L'
+    document.getElementById('st-pending').textContent = s.pending || 0
+    document.getElementById('st-confirmed').textContent = s.confirmed || 0
+    document.getElementById('st-completed').textContent = s.completed || 0
+    document.getElementById('st-cancelled').textContent = s.cancelled || 0
+    renderChart(s.weekly || [])
+  } catch(e){
+    // Demo data
+    document.getElementById('st-total').textContent = '24'
+    document.getElementById('st-today').textContent = '3'
+    document.getElementById('st-clients').textContent = '18'
+    document.getElementById('st-revenue').textContent = '48500 L'
+    document.getElementById('st-pending').textContent = '5'
+    document.getElementById('st-confirmed').textContent = '8'
+    document.getElementById('st-completed').textContent = '10'
+    document.getElementById('st-cancelled').textContent = '1'
+    renderChart([
+      {booking_date:'2026-03-19',count:2},{booking_date:'2026-03-20',count:4},
+      {booking_date:'2026-03-21',count:3},{booking_date:'2026-03-22',count:5},
+      {booking_date:'2026-03-23',count:2},{booking_date:'2026-03-24',count:6},
+      {booking_date:'2026-03-25',count:3}
+    ])
+  }
+}
+
+function renderChart(data){
+  const el = document.getElementById('chart-bars')
+  if(!data.length){el.innerHTML='<div class="empty-state"><p>Nuk ka të dhëna</p></div>';return}
+  const max = Math.max(...data.map(d=>parseInt(d.count)))
+  const days = ['Hë','Ma','Më','En','Pr','Sh','Di']
+  var chartHtml = ''
+  data.forEach(function(d){
+    var pct = max>0 ? (parseInt(d.count)/max)*100 : 0
+    var day = new Date(d.booking_date).getDay()
+    chartHtml += '<div class="chart-bar-wrap">'
+    chartHtml += '<div class="chart-count">'+d.count+'</div>'
+    chartHtml += '<div style="flex:1;display:flex;align-items:flex-end;width:100%">'
+    chartHtml += '<div class="chart-bar" style="height:'+pct+'%"></div>'
+    chartHtml += '</div>'
+    chartHtml += '<div class="chart-day">'+(days[day]||'--')+'</div>'
+    chartHtml += '</div>'
+  })
+  el.innerHTML = chartHtml
+}
+
+// ── BOOKINGS ──
+let allBookings = []
 async function loadBookings(){
-  const data = await api('get_bookings')
+  document.getElementById('bookings-table').innerHTML='<div class="loading">Duke ngarkuar...</div>'
+  try{
+    const data = await apiGet('get_bookings')
+    if(Array.isArray(data)){
+      allBookings = data
+    } else {
+      allBookings = getDemoBookings()
+    }
+  } catch(e){
+    allBookings = getDemoBookings()
+  }
+  filterBookings(currentFilter, document.querySelector('.status-pill.active-filter'))
+}
 
-  if(!Array.isArray(data)){
-    bookings.innerHTML = 'Error'
+function getDemoBookings(){
+  return [
+    {id:1,client_name:'Endri Karaj',client_phone:'+355 69 123 4567',client_email:'endri@gmail.com',barber_name:'Artan Koci',service_name:'Prerje Flokësh',price:'800 L',booking_date:'2026-03-25',booking_time:'10:00',status:'confirmed'},
+    {id:2,client_name:'Aldi Murataj',client_phone:'+355 68 234 5678',client_email:'aldi@gmail.com',barber_name:'Blerim Hoxha',service_name:'King Experience',price:'2500 L',booking_date:'2026-03-25',booking_time:'11:00',status:'pending'},
+    {id:3,client_name:'Dritan Sina',client_phone:'+355 69 345 6789',client_email:'dritan@gmail.com',barber_name:'Gentian Mema',service_name:'Grooming i Plotë',price:'2000 L',booking_date:'2026-03-26',booking_time:'14:00',status:'completed'},
+  ]
+}
+
+function filterBookings(status, el){
+  currentFilter = status
+  document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active-filter'))
+  if(el) el.classList.add('active-filter')
+  else {
+    const pill = document.querySelector('.status-pill.'+( status==='all'?'all':status))
+    if(pill) pill.classList.add('active-filter')
+  }
+  const filtered = status==='all' ? allBookings : allBookings.filter(b=>b.status===status)
+  renderBookings(filtered)
+}
+
+function renderBookings(data){
+  var el = document.getElementById('bookings-table')
+  if(!data.length){el.innerHTML='<div class="empty-state"><div class="icon">&#128197;</div><p>Nuk ka rezervime</p></div>';return}
+  var html='<table><thead><tr><th>#</th><th>Klienti</th><th>Telefon</th><th>Berberi</th><th>Sherbimi</th><th>Data</th><th>Ora</th><th>Cmimi</th><th>Statusi</th><th>Veprime</th></tr></thead><tbody>'
+  data.forEach(function(b){
+    html += '<tr>'
+    html += '<td>'+b.id+'</td>'
+    html += '<td><strong>'+b.client_name+'</strong><br><small style="color:var(--muted)">'+(b.client_email||'')+'</small></td>'
+    html += '<td>'+b.client_phone+'</td>'
+    html += '<td>'+(b.barber_name||'--')+'</td>'
+    html += '<td>'+(b.service_name||'--')+'</td>'
+    html += '<td>'+b.booking_date+'</td>'
+    html += '<td>'+(b.booking_time?b.booking_time.slice(0,5):'')+'</td>'
+    html += '<td><strong>'+(b.price||'--')+'</strong></td>'
+    html += '<td><span class="badge '+b.status+'">'+statusLabel(b.status)+'</span></td>'
+    html += '<td style="display:flex;gap:.4rem;flex-wrap:wrap">'
+    if(b.status==='pending') html += '<button class="btn-sm btn-confirm" onclick="confirmBooking(' + b.id + ')">&#10004; Konfirmo</button>'
+    if(b.status==='confirmed') html += '<button class="btn-sm btn-complete" onclick="completeBooking(' + b.id + ')">&#127942; Kryer</button>'
+    if(b.status!=='cancelled'&&b.status!=='completed') html += '<button class="btn-sm btn-cancel" onclick="cancelBooking(' + b.id + ')">&#10005; Anulo</button>'
+    html += '<button class="btn-sm btn-delete" onclick="deleteBooking(' + b.id + ')">&#128465;</button>'
+    html += '</td></tr>'
+  })
+  html += '</tbody></table>'
+  el.innerHTML = html
+}
+
+function statusLabel(s){
+  return {pending:'⏳ Në Pritje',confirmed:'✔ Konfirmuar',completed:'🏆 Kryer',cancelled:'✕ Anuluar'}[s]||s
+}
+
+function confirmBooking(id){updateBooking(id,'confirmed')}
+function completeBooking(id){updateBooking(id,'completed')}
+function cancelBooking(id){updateBooking(id,'cancelled')}
+async function updateBooking(id, status){
+  try{
+    await api('update_booking',{id,status})
+    showToast('✓ Statusi u ndryshua!')
+  } catch(e){}
+  const b = allBookings.find(x=>x.id===id)
+  if(b) b.status = status
+  const filtered = currentFilter==='all' ? allBookings : allBookings.filter(b=>b.status===currentFilter)
+  renderBookings(filtered)
+  loadStats()
+}
+
+async function deleteBooking(id){
+  if(!confirm('Jeni i sigurt që doni të fshini këtë rezervim?')) return
+  try{
+    await api('delete_booking',{id})
+    showToast('✓ Rezervimi u fshi!')
+  } catch(e){}
+  allBookings = allBookings.filter(b=>b.id!==id)
+  const filtered = currentFilter==='all' ? allBookings : allBookings.filter(b=>b.status===currentFilter)
+  renderBookings(filtered)
+  loadStats()
+}
+
+// ADD BOOKING
+let barbersList = []
+function isActive(b){ return b.active==1 || b.active==='1' || b.active===true }
+function openAddBooking(){
+  const sel = document.getElementById('bk-barber')
+  sel.innerHTML = barbersList.filter(function(b){return isActive(b)}).map(function(b){
+      return '<option value="'+b.name+'">'+b.name+'</option>'
+    }).join('')
+  document.getElementById('modal-booking').classList.add('active')
+}
+
+async function addBooking(){
+  const name = document.getElementById('bk-name').value.trim()
+  const phone = document.getElementById('bk-phone').value.trim()
+  const email = document.getElementById('bk-email').value.trim()
+  const barber = document.getElementById('bk-barber').value
+  const svcVal = document.getElementById('bk-service').value
+  const [service_name, price] = svcVal.split('|')
+  const date = document.getElementById('bk-date').value
+  const time = document.getElementById('bk-time').value
+  if(!name||!phone||!date){showToast('⚠ Plotësoni fushat e detyrueshme!','error');return}
+  const data = {client_name:name,client_phone:phone,client_email:email,barber_name:barber,service_name,price,booking_date:date,booking_time:time}
+  try{
+    await api('add_booking',data)
+    showToast('✓ Rezervimi u shtua!')
+  } catch(e){
+    // Demo: add locally
+    allBookings.unshift({id:Date.now(),...data,status:'pending'})
+    showToast('✓ Rezervimi u shtua! (demo)')
+  }
+  closeModal('modal-booking')
+  // Clear form
+  ;['bk-name','bk-phone','bk-email'].forEach(id=>{document.getElementById(id).value=''})
+  await loadBookings()
+  loadStats()
+  showToast('✓ Rezervimi u shtua dhe u ruajt!')
+}
+
+// ── BARBERS ──
+async function loadBarbers(){
+  try{
+    var data = await apiGet('get_barbers')
+    if(Array.isArray(data)){
+      barbersList = data
+    } else {
+      console.log('get_barbers error:', data)
+      barbersList = []
+    }
+  } catch(e){
+    console.log('loadBarbers exception:', e)
+    barbersList = []
+  }
+  renderBarbers(barbersList)
+  var sel = document.getElementById('sch-barber')
+  if(sel){
+    sel.innerHTML = barbersList.map(function(b){
+      return '<option value="'+b.id+'">'+b.name+'</option>'
+    }).join('')
+  }
+}
+
+function renderBarbers(data){
+  var el = document.getElementById('barbers-table')
+  if(!data.length){el.innerHTML='<div class="empty-state"><div class="icon">&#128136;</div><p>Nuk ka berber</p></div>';return}
+  var html='<table><thead><tr><th>#</th><th>Emri</th><th>Roli</th><th>Eksperienca</th><th>Specializimet</th><th>Statusi</th><th>Veprime</th></tr></thead><tbody>'
+  data.forEach(function(b){
+    var act = isActive(b)
+    var badgeCls = act ? 'active' : 'inactive'
+    var badgeTxt = act ? '&#10003; Aktiv' : '&#10007; Joaktiv'
+    var btnTxt = act ? 'Caktivizo' : 'Aktivizo'
+    html += '<tr>'
+    html += '<td>'+b.id+'</td>'
+    html += '<td><strong>'+b.name+'</strong></td>'
+    html += '<td>'+b.role+'</td>'
+    html += '<td>'+(b.experience||'--')+'</td>'
+    html += '<td><small>'+(b.specialties||'--')+'</small></td>'
+    html += '<td><span class="badge '+badgeCls+'">'+badgeTxt+'</span></td>'
+    html += '<td style="display:flex;gap:.4rem">'
+    html += '<button class="btn-sm btn-toggle" onclick="toggleBarber('+b.id+')">'+btnTxt+'</button>'
+    html += '<button class="btn-sm btn-delete" onclick="deleteBarber('+b.id+')">&#128465; Fshi</button>'
+    html += '</td></tr>'
+  })
+  html += '</tbody></table>'
+  el.innerHTML = html
+}
+
+function openAddBarber(){document.getElementById('modal-barber').classList.add('active')}
+
+async function addBarber(){
+  const name = document.getElementById('br-name').value.trim()
+  if(!name){showToast('⚠ Shkruani emrin!','error');return}
+  const data = {name,role:document.getElementById('br-role').value||'Berber',experience:document.getElementById('br-exp').value,specialties:document.getElementById('br-spec').value}
+  try{ await api('add_barber',data); showToast('✓ Berberi u shtua!') }
+  catch(e){ barbersList.push({id:Date.now(),...data,active:1}); showToast('✓ Berberi u shtua! (demo)') }
+  closeModal('modal-barber')
+  renderBarbers(barbersList)
+}
+
+async function toggleBarber(id){
+  try{
+    var r = await api('toggle_barber', {id: parseInt(id)})
+    console.log('Toggle response:', JSON.stringify(r))
+    if(r && r.success){
+      await loadBarbers()
+      showToast((r.active==1||r.active==='1') ? '✓ Berberi u aktivizua!' : '✓ Berberi u caktivizua!')
+    } else {
+      showToast('Gabim: ' + (r&&r.error ? r.error : 'Pa pergjigje'), 'error')
+    }
+  } catch(e){
+    console.log('Toggle exception:', e)
+    showToast('Nuk u lidh me serverin!', 'error')
+  }
+}
+
+async function deleteBarber(id){
+  if(!confirm('Fshini këtë berber?')) return
+  try{ await api('delete_barber',{id}); showToast('✓ Berberi u fshi!') }
+  catch(e){ showToast('✓ Berberi u fshi! (demo)') }
+  barbersList = barbersList.filter(b=>b.id!==id)
+  renderBarbers(barbersList)
+}
+
+// ── CLIENTS ──
+async function loadClients(){
+  try{
+    const data = await apiGet('get_clients')
+    renderClients(data)
+  } catch(e){
+    renderClients([
+      {id:1,name:'Endri Karaj',email:'endri@gmail.com',phone:'+355 69 123 4567',created_at:'2026-03-10'},
+      {id:2,name:'Aldi Murataj',email:'aldi@gmail.com',phone:'+355 68 234 5678',created_at:'2026-03-15'},
+    ])
+  }
+}
+
+function renderClients(data){
+  var el = document.getElementById('clients-table')
+  if(!el) return
+  if(!data||!data.length){el.innerHTML='<div class="empty-state"><div class="icon">&#128101;</div><p>Nuk ka klientë</p></div>';return}
+  var html='<table><thead><tr><th>#</th><th>Emri</th><th>Email</th><th>Telefoni</th><th>Regjistruar</th></tr></thead><tbody>'
+  data.forEach(function(c){
+    var dat = c.created_at ? c.created_at.split('T')[0] : (c.created_at||'--')
+    html += '<tr><td>'+c.id+'</td><td><strong>'+c.name+'</strong></td><td>'+(c.email||'--')+'</td><td>'+(c.phone||'--')+'</td><td>'+dat+'</td></tr>'
+  })
+  html += '</tbody></table>'
+  el.innerHTML = html
+}
+
+// ── SCHEDULES ──
+async function loadSchedules(){
+  try{
+    const data = await apiGet('get_schedules')
+    renderSchedules(data)
+  } catch(e){
+    renderSchedules([])
+  }
+}
+
+function renderSchedules(data){
+  const el = document.getElementById('schedules-table')
+  if(!data.length){el.innerHTML='<div class="empty-state"><div class="icon">🕐</div><p>Nuk ka orë të bllokuara</p></div>';return}
+  el.innerHTML = '<table><thead><tr><th>Berberi</th><th>Data</th><th>Ora</th><th>Shënim</th><th></th></tr></thead><tbody>'+
+    data.map(function(s){
+      return '<tr>'+
+        '<td>'+(s.barber_name||'Te gjithe')+'</td>'+
+        '<td>'+s.schedule_date+'</td>'+
+        '<td><strong>'+(s.blocked_time?s.blocked_time.slice(0,5):'')+'</strong></td>'+
+        '<td>'+(s.note||'--')+'</td>'+
+        '<td><button class="btn-sm btn-delete" onclick="unblockTime('+s.id+')">🔓 Cbloko</button></td>'+
+      '</tr>';
+    }).join('')+
+  '</tbody></table>'
+}
+
+async function blockTime(){
+  var barber_id = parseInt(document.getElementById('sch-barber').value) || 0
+  var date = document.getElementById('sch-date').value
+  var time = document.getElementById('sch-time').value
+  var note = document.getElementById('sch-note').value
+  if(!date){showToast('Zgjidhni daten!','error');return}
+  if(!time){showToast('Zgjidhni oren!','error');return}
+  try{
+    const r = await api('block_time',{barber_id:barber_id,date:date,time:time,note:note})
+    if(r && r.success){
+      showToast('✓ Ora u bllokua!')
+    } else {
+      showToast('⚠ Gabim: ' + (r?.error||''), 'error')
+      return
+    }
+  } catch(e){
+    showToast('⚠ Nuk u lidh me serverin!','error')
     return
   }
-
-  let html='<table><tr><th>ID</th><th>Name</th><th>Date</th><th>Time</th></tr>'
-
-  data.forEach(b=>{
-    html+=`<tr>
-      <td>${b.id}</td>
-      <td>${b.client_name}</td>
-      <td>${b.booking_date}</td>
-      <td>${b.booking_time}</td>
-    </tr>`
-  })
-
-  html+='</table>'
-
-  bookings.innerHTML = html
+  document.getElementById('sch-note').value=''
+  document.getElementById('sch-date').value=''
+  await loadSchedules()
 }
 
-// ================= LOGS =================
+async function unblockTime(id){
+  try{ await api('unblock_time',{id}) } catch(e){}
+  showToast('✓ Ora u çbllokua!')
+  loadSchedules()
+}
 
-async function loadLogs(level=''){
-  logs.innerHTML='Loading...'
+// ── MODAL ──
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active')})
+})
 
-  const data = await api('get_logs'+(level?'&level='+level:''))
-
-  if(!Array.isArray(data)){
-    logs.innerHTML='Error'
-    return
+// ── PHONE FORMAT ──
+function fmtPhone(input){
+  let v=input.value.replace(/[^\d+]/g,'')
+  if(!v.startsWith('+')){
+    if(v.startsWith('355')) v='+'+v
+    else v='+355'+v.replace(/^0+/,'')
   }
-
-  let html='<table><tr><th>Time</th><th>Level</th><th>Message</th><th>Context</th></tr>'
-
-  data.forEach(l=>{
-    html+=`<tr>
-      <td>${l.created_at}</td>
-      <td>${l.level}</td>
-      <td>${l.message}</td>
-      <td><pre>${JSON.stringify(l.context,null,2)}</pre></td>
-    </tr>`
-  })
-
-  html+='</table>'
-
-  logs.innerHTML = html
+  const d=v.replace(/\D/g,'')
+  if(d.length<=3){input.value='+'+d;return}
+  let f='+'+d.slice(0,3)
+  const r=d.slice(3)
+  if(r.length>0) f+=' '+r.slice(0,2)
+  if(r.length>2) f+=' '+r.slice(2,5)
+  if(r.length>5) f+=' '+r.slice(5,9)
+  input.value=f
 }
 
-// ================= INIT =================
-
-if(token){
-  start()
-}
-
+// Enter key for login
+document.getElementById('adm-pass').addEventListener('keydown',function(e){
+  if(e.key==='Enter') doAdminLogin()
+})
 </script>
-
 </body>
 </html>

@@ -2,7 +2,6 @@
 <html lang="sq">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KING CUTS - Salloni Premium</title>
@@ -218,119 +217,36 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
 @media(max-width:900px){
   .reveal{opacity:1!important;transform:none!important;transition:none!important}
-
-  /* NAV */
-  nav{padding:0 1rem;height:56px}
+  nav{padding:0 1rem;height:60px}
   .nav-center{display:none}
-  .nav-logo{font-size:1.3rem;letter-spacing:.08em}
-  .btn-nav{padding:.45rem 1rem;font-size:.7rem}
-
-  /* HERO */
-  .hero{height:100svh}
-  .hero-eyebrow{font-size:.7rem;letter-spacing:.15em;margin-bottom:1rem}
-  .hero-eyebrow::before,.hero-eyebrow::after{width:20px}
-  .hero h1{font-size:clamp(3.2rem,18vw,5rem);line-height:.95}
-  .hero-sub{font-size:1rem;margin-top:.8rem}
-  .hero-btns{flex-direction:column;align-items:center;gap:.7rem;margin-top:2rem}
-  .hero-cta,.hero-cta.outline{width:260px;justify-content:center;padding:.9rem 1.5rem;font-size:.75rem}
-  .scroll-hint{display:none}
-
-  /* SECTIONS */
-  .home-section{padding:3rem 1.2rem}
+  .nav-logo{font-size:1.4rem}
+  .home-section{padding:3.5rem 1.2rem}
   .home-section::before{left:1.2rem;right:1.2rem}
-  .section-header{gap:.8rem;margin-bottom:2rem}
-  .section-num{font-size:2.5rem}
-  .section-title{font-size:1.8rem}
-
-  /* GALLERY */
-  .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:3px}
-  .gallery-item:first-child{grid-column:span 2;height:180px}
-  .gallery-item{height:130px}
-
-  /* REVIEWS */
+  .hero h1{font-size:4.2rem}
+  .hero-btns{flex-direction:column;align-items:center;gap:.8rem}
+  .hero-cta,.hero-cta.outline{width:280px;justify-content:center;padding:1rem 2rem}
+  .booking-page{padding-top:60px}
+  .booking-header{padding:1.8rem 1.2rem}
+  .booking-body{padding:1.5rem 1.2rem 3rem}
+  .cal-confirm-layout{grid-template-columns:1fr;gap:1.5rem}
+  .slots-grid{grid-template-columns:repeat(3,1fr)}
+  .pricing-panel.active{grid-template-columns:1fr}
+  .barbers-grid{grid-template-columns:1fr 1fr;gap:1rem}
+  .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+  .gallery-item:first-child{grid-column:span 2;height:200px}
+  .gallery-item{height:150px}
   .reviews-grid{grid-template-columns:1fr}
   .review-inputs{grid-template-columns:1fr}
-  .add-review-form{padding:1.5rem 1rem}
-
-  /* MAP */
+  footer{grid-template-columns:1fr 1fr;padding:2.5rem 1.2rem;gap:2rem}
+  .footer-bottom{padding:1rem 1.2rem;flex-direction:column;gap:.4rem;text-align:center}
   .map-layout{grid-template-columns:1fr}
-  .map-info{padding:0 0 1.5rem}
-  .map-embed iframe{min-height:240px}
-
-  /* FOOTER */
-  footer{grid-template-columns:1fr;padding:2rem 1.2rem;gap:1.5rem}
-  .footer-col h4{margin-bottom:.6rem}
-  .footer-col a,.footer-col p{line-height:2}
-  .footer-bottom{padding:1rem 1.2rem;flex-direction:column;gap:.3rem;text-align:center}
-
-  /* BOOKING PAGES */
-  .booking-page{padding-top:56px}
-  .booking-header{padding:1.2rem 1rem 1rem}
-  .booking-header h2{font-size:1.5rem;margin-bottom:.2rem}
-  .booking-header p{font-size:.82rem}
-  .booking-body{padding:1.2rem 1rem 3rem;max-width:100%}
-  .btn-back{font-size:.72rem;padding:.5rem 1rem;margin-bottom:1.2rem}
-
-  /* PROGRESS BAR */
-  .progress-bar{margin-bottom:1.2rem}
+  .map-info{padding:0 0 2rem}
+  .map-embed iframe{min-height:260px}
   .progress-step .step-label{display:none}
-  .step-circle{width:32px;height:32px;font-size:.75rem}
-  .step-line{margin:0 .5rem}
-
-  /* SELECTION BAR */
-  .selection-bar{gap:.8rem;padding:.6rem .8rem;flex-wrap:wrap}
-  .sel-label{font-size:.62rem}
-  .sel-val{font-size:.82rem}
-
-  /* SERVICES */
-  .pricing-tabs{margin-bottom:1.5rem}
-  .ptab{padding:.6rem 1.2rem;font-size:.75rem}
-  .pricing-panel.active{grid-template-columns:1fr;gap:.8rem}
-  .price-card{padding:1.4rem 1.2rem}
-  .price-name{font-size:1.2rem}
-  .price-desc{font-size:.8rem}
-
-  /* BARBERS */
-  .barbers-grid{grid-template-columns:1fr 1fr;gap:.8rem}
-  .barber-photo{height:160px}
-  .barber-info{padding:.9rem}
-  .barber-name{font-size:1rem}
-  .barber-tags{gap:.2rem}
-  .barber-tag{font-size:.58rem;padding:.18rem .5rem}
-
-  /* CALENDAR */
-  .cal-confirm-layout{grid-template-columns:1fr;gap:1.2rem}
-  .cal-wrap{padding:1.2rem}
-  .cal-day{font-size:.78rem}
-  .slots-grid{grid-template-columns:repeat(3,1fr);gap:.4rem}
-  .slot{padding:.5rem;font-size:.75rem}
-  .time-section{padding:1.2rem}
-
-  /* CONFIRM FORM */
-  .confirm-form{padding:1.4rem 1rem}
-  .summary-box{padding:1rem}
-
-  /* SUCCESS */
+  .selection-bar{gap:1rem;padding:.7rem 1rem}
   .success-details{min-width:unset;width:100%}
-  .success-page{padding:2rem 1rem}
-  .success-page h2{font-size:1.8rem}
-}
-
-/* Extra small phones */
-@media(max-width:400px){
-  .hero h1{font-size:2.8rem}
-  .hero-eyebrow{font-size:.6rem;letter-spacing:.1em}
-  .hero-eyebrow::before,.hero-eyebrow::after{width:12px}
-  .barbers-grid{grid-template-columns:1fr}
-  .slots-grid{grid-template-columns:repeat(2,1fr)}
-  .hero-cta,.hero-cta.outline{width:100%;max-width:260px}
-  .section-num{display:none}
-  .home-section{padding:2.5rem 1rem}
-  .pricing-panel.active{gap:.6rem}
-  .price-card{padding:1.2rem}
 }
 </style>
-
 </head>
 <body>
 
@@ -368,11 +284,11 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   <section class="home-section" id="gallery" style="background:var(--bg)">
     <div class="section-header reveal"><span class="section-num">01</span><h2 class="section-title">Puna<br><em>Jone</em></h2></div>
     <div class="gallery-grid">
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80" alt="" loading="lazy" onerror="this.style.display='none'"><div class="goverlay"><span>Prerje Klasike</span></div></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=500&q=80" alt="" loading="lazy" onerror="this.style.display='none'"><div class="goverlay"><span>Mjeker Premium</span></div></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=500&q=80" alt="" loading="lazy" onerror="this.style.display='none'"><div class="goverlay"><span>Skin Fade</span></div></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&q=80" alt="" loading="lazy" onerror="this.style.display='none'"><div class="goverlay"><span>Grooming VIP</span></div></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=500&q=80" alt="" loading="lazy" onerror="this.style.display='none'"><div class="goverlay"><span>Modern Style</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80" alt=""><div class="goverlay"><span>Prerje Klasike</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=500&q=80" alt=""><div class="goverlay"><span>Mjeker Premium</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=500&q=80" alt=""><div class="goverlay"><span>Skin Fade</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&q=80" alt=""><div class="goverlay"><span>Grooming VIP</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=500&q=80" alt=""><div class="goverlay"><span>Modern Style</span></div></div>
     </div>
   </section>
 
@@ -434,7 +350,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   <footer>
     <div><span class="footer-logo">King Cuts</span><p class="footer-tagline">Ku cdo prerje eshte art dhe cdo klient eshte mbret.</p></div>
     <div class="footer-col"><h4>Navigim</h4><a onclick="goPage('p-service')">Rezervo</a><a onclick="scrollToSection('gallery')">Galeria</a><a onclick="scrollToSection('reviews-section')">Recensione</a><a onclick="scrollToSection('map-section')">Lokacioni</a></div>
-    <div class="footer-col"><h4>Kontakt</h4><a href="tel:+355691234567">+355 69 123 4567</a><a href="/cdn-cgi/l/email-protection#3c55525a537c5755525b5f49484f125d50"><span class="__cf_email__" data-cfemail="4e272028210e252720292d3b3a3d602f22">[email&#160;protected]</span></a><a href="#">Instagram</a><a href="#">Facebook</a></div>
+    <div class="footer-col"><h4>Kontakt</h4><a href="tel:+355691234567">+355 69 123 4567</a><a href="mailto:info@kingcuts.al">info@kingcuts.al</a><a href="#">Instagram</a><a href="#">Facebook</a></div>
     <div class="footer-col"><h4>Orari</h4><p>E Hene &ndash; E Premte</p><p>09:00 &ndash; 20:00</p><p style="margin-top:.5rem">E Shtune: 09:00 &ndash; 18:00</p></div>
   </footer>
   <div class="footer-bottom"><p>&copy; 2026 King Cuts. Te gjitha te drejtat e rezervuara.</p><p>Dizajnuar me &#9829; ne Tirane</p></div>
@@ -459,16 +375,16 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
       <button class="ptab" onclick="switchPricing('premium')">Premium</button>
     </div>
     <div class="pricing-panel active" id="price-basic">
-      <div class="price-card" onclick="selectService(this,'Prerje Flokesh','800 L','30 min')"><span class="price-icon">&#9988;</span><div class="price-name">Prerje Flokesh</div><p class="price-desc">Prerje klasike me makine dhe gershere. Perfshihet larje dhe tharje.</p><span class="price-val">800 L<span class="price-duration"> &middot; 30 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Prerje Flokesh','800 L','30 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Rregullim Mjekre','500 L','20 min')"><span class="price-icon">&#129746;</span><div class="price-name">Rregullim Mjekre</div><p class="price-desc">Formesim me brisk te nxehte dhe vaj argan premium.</p><span class="price-val">500 L<span class="price-duration"> &middot; 20 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Rregullim Mjekre','500 L','20 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Prerje + Mjeker','1200 L','50 min')"><span class="price-icon">&#128135;</span><div class="price-name">Prerje + Mjeker</div><p class="price-desc">Kombinimi i prerjes dhe rregullimit te mjekres.</p><span class="price-val">1200 L<span class="price-duration"> &middot; 50 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Prerje + Mjeker','1200 L','50 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Prerje Femije','500 L','25 min')"><span class="price-icon">&#128102;</span><div class="price-name">Prerje Femije</div><p class="price-desc">Prerje e kujdesshme per femije deri 12 vjec.</p><span class="price-val">500 L<span class="price-duration"> &middot; 25 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Prerje Femije','500 L','25 min');goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje Flokesh','800 L','30 min')"><span class="price-icon">&#9988;</span><div class="price-name">Prerje Flokesh</div><p class="price-desc">Prerje klasike me makine dhe gershere. Perfshihet larje dhe tharje.</p><span class="price-val">800 L<span class="price-duration"> &middot; 30 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Rregullim Mjekre','500 L','20 min')"><span class="price-icon">&#129746;</span><div class="price-name">Rregullim Mjekre</div><p class="price-desc">Formesim me brisk te nxehte dhe vaj argan premium.</p><span class="price-val">500 L<span class="price-duration"> &middot; 20 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje + Mjeker','1200 L','50 min')"><span class="price-icon">&#128135;</span><div class="price-name">Prerje + Mjeker</div><p class="price-desc">Kombinimi i prerjes dhe rregullimit te mjekres.</p><span class="price-val">1200 L<span class="price-duration"> &middot; 50 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje Femije','500 L','25 min')"><span class="price-icon">&#128102;</span><div class="price-name">Prerje Femije</div><p class="price-desc">Prerje e kujdesshme per femije deri 12 vjec.</p><span class="price-val">500 L<span class="price-duration"> &middot; 25 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
     </div>
     <div class="pricing-panel" id="price-premium">
-      <div class="price-card featured" onclick="selectService(this,'King Experience','2500 L','75 min')"><span class="price-badge">Bestseller</span><span class="price-icon">&#128081;</span><div class="price-name">King Experience</div><p class="price-desc">Prerje, mjeker me brisk, masazh koke 10 min, vajra premium.</p><span class="price-val">2500 L<span class="price-duration"> &middot; 75 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'King Experience','2500 L','75 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Grooming i Plote','2000 L','60 min')"><span class="price-icon">&#128136;</span><div class="price-name">Grooming i Plote</div><p class="price-desc">Prerje + mjeker + trajtim lekure + maska fytyre.</p><span class="price-val">2000 L<span class="price-duration"> &middot; 60 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Grooming i Plote','2000 L','60 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Trajtim Lekure','1500 L','40 min')"><span class="price-icon">&#129404;</span><div class="price-name">Trajtim Lekure</div><p class="price-desc">Pastrimi i thelle dhe hidratim me produkte Kerastase.</p><span class="price-val">1500 L<span class="price-duration"> &middot; 40 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'Trajtim Lekure','1500 L','40 min');goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'VIP Home Service','5000 L','90 min')"><span class="price-icon">&#128142;</span><div class="price-name">VIP Home Service</div><p class="price-desc">Sherbim premium ne shtepine tuaj me berberin personal.</p><span class="price-val">5000 L<span class="price-duration"> &middot; 90 min</span></span><button class="select-btn" onclick="selectService(this.closest('.price-card'),'VIP Home Service','5000 L','90 min');goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card featured" onclick="selectService(this,'King Experience','2500 L','75 min')"><span class="price-badge">Bestseller</span><span class="price-icon">&#128081;</span><div class="price-name">King Experience</div><p class="price-desc">Prerje, mjeker me brisk, masazh koke 10 min, vajra premium.</p><span class="price-val">2500 L<span class="price-duration"> &middot; 75 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Grooming i Plote','2000 L','60 min')"><span class="price-icon">&#128136;</span><div class="price-name">Grooming i Plote</div><p class="price-desc">Prerje + mjeker + trajtim lekure + maska fytyre.</p><span class="price-val">2000 L<span class="price-duration"> &middot; 60 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Trajtim Lekure','1500 L','40 min')"><span class="price-icon">&#129404;</span><div class="price-name">Trajtim Lekure</div><p class="price-desc">Pastrimi i thelle dhe hidratim me produkte Kerastase.</p><span class="price-val">1500 L<span class="price-duration"> &middot; 40 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'VIP Home Service','5000 L','90 min')"><span class="price-icon">&#128142;</span><div class="price-name">VIP Home Service</div><p class="price-desc">Sherbim premium ne shtepine tuaj me berberin personal.</p><span class="price-val">5000 L<span class="price-duration"> &middot; 90 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
     </div>
   </div>
 </div>
@@ -579,7 +495,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
     <div class="success-page">
       <div class="success-icon">&#127881;</div>
       <h2>Rezervimi Konfirmuar!</h2>
-      <p>Ora juaj eshte bllokuar. Ju presim me padurim ne sallonin tone!</p>
+      <p>Ju presim me padurim ne sallonin tone. Detajet u derguan ne email-in tuaj.</p>
       <div class="email-notice"><span style="font-size:1.2rem">&#128231;</span><span>Email konfirmimi u dergua te: <strong id="s-email-shown">--</strong></span></div>
       <div class="success-details">
         <div class="sdet-row"><span>Sherbimi</span><span id="s-srv">--</span></div>
@@ -595,14 +511,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ── API URL - Ndrysho kete pas Railway deploy ──
-var API_URL = 'https://kingcuts-api-production.up.railway.app/api.php';
-// Nese je ne localhost, perdor kete:
-if(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'){
-  API_URL = '/barber/api.php';
-}
-
+<script>
 var booking = {service:'', price:'', duration:'', barber:'', barberId:0};
 var userRating = 0;
 var calDate = new Date();
@@ -703,7 +612,7 @@ function loadBarbersForBooking(){
   var grid=document.getElementById('barbers-grid-booking');
   if(!grid) return;
   grid.innerHTML='<div style="text-align:center;padding:2rem;color:#7a6a50;font-style:italic;grid-column:span 4">Duke ngarkuar...</div>';
-  fetch(API_URL+'?action=get_barbers')
+  fetch('/barber/api.php?action=get_barbers')
     .then(function(r){return r.json();})
     .catch(function(){
       return [
@@ -795,59 +704,21 @@ function selectDate(key,d,m,y){
   document.getElementById('slots-container').innerHTML='<div class="no-date-msg">Duke ngarkuar oret...</div>';
   document.getElementById('confirm-form').style.display='none';
   document.getElementById('waiting-msg').style.display='block';
-
-  // Check if 2-slot service - use backup from sessionStorage if booking.service is empty
-  var serviceName = booking.service || window._lastService || '';
-  try{ if(!serviceName) serviceName = sessionStorage.getItem('kc_service')||''; }catch(e){}
-  var twoSlotServices = ['Prerje + Mjeker','King Experience','Grooming i Plote','Trajtim Lekure'];
-  var isTwoSlot = twoSlotServices.indexOf(serviceName) >= 0;
-  var slotsNeeded = isTwoSlot ? 2 : 1;
-  var totalMins = slotsNeeded * 30; // total minutes the service occupies
-
-  // Slot interval: 60 min for 2-slot services, 30 min for 1-slot
-  var slotInterval = isTwoSlot ? 60 : 30;
-  var allSlots = [];
-  var endHour = 18;
-  var cur = 9 * 60;
-  while(cur + totalMins <= endHour * 60){
-    var h = Math.floor(cur/60);
-    var mn = cur % 60;
-    allSlots.push(String(h).padStart(2,'0') + ':' + String(mn).padStart(2,'0'));
-    cur += slotInterval;
-  }
-  // Remove 13:00 for all services
-  allSlots = allSlots.filter(function(t){ return t !== '13:00'; });
-
+  var times=['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
   var now=new Date();
   var isToday=(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate());
   var barberParam=booking.barberId?'&barber_id='+booking.barberId:'';
-
-  fetch(API_URL+'?action=get_booked_slots&date='+key+barberParam)
+  fetch('/barber/api.php?action=get_booked_slots&date='+key+barberParam)
     .then(function(r){return r.json();})
     .catch(function(){return [];})
     .then(function(booked){
       if(!Array.isArray(booked)) booked=[];
-
-      // Convert booked times to minutes for range checking
-      var bookedMins = booked.map(function(t){
-        var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]);
-      });
-
       var shtml='<div class="slots-grid">';
-      allSlots.forEach(function(t){
+      times.forEach(function(t){
         var parts=t.split(':');
-        var th=parseInt(parts[0]), tm=parseInt(parts[1]);
-        var slotMins = th*60+tm;
-
-        // Check if past
-        var isPastTime = isToday&&(slotMins <= now.getHours()*60+now.getMinutes());
-
-        // Check if any booked slot overlaps with our needed duration
-        var isBooked = bookedMins.some(function(bm){
-          return bm < slotMins+totalMins && bm+30 > slotMins;
-        });
-
-        if(isBooked || isPastTime){
+        var th=parseInt(parts[0]),tm=parseInt(parts[1]);
+        var isPastTime=isToday&&(th<now.getHours()||(th===now.getHours()&&tm<=now.getMinutes()));
+        if(booked.indexOf(t)>=0||isPastTime){
           shtml+='<div class="slot booked">'+t+'</div>';
         } else {
           shtml+='<div class="slot" data-time="'+t+'" onclick="selectSlot(this)">'+t+'</div>';
@@ -905,33 +776,16 @@ function submitBooking(){
   document.getElementById('s-time').textContent=selSlot;
   document.getElementById('s-price').textContent=booking.price;
   document.getElementById('s-email-shown').textContent=email||'(nuk u dha)';
-  fetch(API_URL+'?action=add_booking',{
+  fetch('/barber/api.php?action=add_booking',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({client_name:name,client_phone:phone,client_email:email,barber_name:booking.barber,service_name:booking.service,price:booking.price,booking_date:selDate,booking_time:selSlot})
   }).then(function(r){return r.json();})
     .then(function(res){if(res.success)console.log('Rezervimi u ruajt! ID:'+res.id);else console.log('Gabim:',res.error);})
     .catch(function(e){console.log('Error:',e);});
-  // Send email via our PHP server
   if(email){
-    fetch(API_URL+'?action=send_email', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        to_email: email,
-        to_name: name,
-        service: booking.service,
-        barber: booking.barber,
-        date: selDateLabel,
-        time: selSlot,
-        price: booking.price
-      })
-    }).then(function(r){return r.json();})
-      .then(function(res){
-        if(res.success) console.log('Email u dergua!');
-        else console.log('Email error:', res.error);
-      }).catch(function(e){
-        console.log('Email error:', e);
-      });
+    var sub=encodeURIComponent('Konfirmim Rezervimi - King Cuts');
+    var body=encodeURIComponent('Pershendetje '+name+',\n\nRezervimi juaj u konfirmua!\n\nSherbimi: '+booking.service+'\nBerberi: '+booking.barber+'\nData: '+selDateLabel+'\nOra: '+selSlot+'\nCmimi: '+booking.price+'\n\nKing Cuts - +355 69 123 4567');
+    setTimeout(function(){window.location.href='mailto:'+email+'?subject='+sub+'&body='+body;},800);
   }
   goPage('p-success');
 }
@@ -966,53 +820,13 @@ function resetAll(){
   selDate=null; selSlot=null; calDate=new Date(); selDateLabel='';
   document.querySelectorAll('.price-card').forEach(function(c){c.classList.remove('selected-service');});
   document.getElementById('inp-name').value='';
-    document.getElementById('inp-phone').value='';
+  document.getElementById('inp-phone').value='';
   document.getElementById('inp-email').value='';
   setFieldError('inp-name','err-name',false);
   setFieldError('inp-phone','err-phone',false);
   setFieldError('inp-email','err-email',false);
   goHome();
 }
-
-// ── LOAD PRICING FROM ADMIN ──
-function applyAdminPricing(){
-  var saved = localStorage.getItem('kc_pricing');
-  if(!saved) return;
-  try{
-    var services = JSON.parse(saved);
-    services.forEach(function(s){
-      var price = s.price + ' L';
-      var dur = s.duration + ' min';
-      document.querySelectorAll('.price-card').forEach(function(card){
-        var nameEl = card.querySelector('.price-name');
-        if(!nameEl) return;
-        var normalize = function(str){ return str.toLowerCase().replace(/\s+/g,'').replace(/[+]/g,''); };
-        if(normalize(nameEl.textContent.trim()) === normalize(s.name)){
-          // Update price display
-          var priceEl = card.querySelector('.price-val');
-          if(priceEl){
-            var durSpan = priceEl.querySelector('.price-duration');
-            priceEl.textContent = price;
-            if(durSpan){
-              var newSpan = document.createElement('span');
-              newSpan.className = 'price-duration';
-              newSpan.textContent = ' \u00b7 ' + dur;
-              priceEl.appendChild(newSpan);
-            }
-          }
-          // Update onclick selectService call
-          var onclick = card.getAttribute('onclick') || '';
-          if(onclick){
-            onclick = onclick.replace(/'\d+ L'/g, "'" + price + "'");
-            onclick = onclick.replace(/'\d+ min'/g, "'" + dur + "'");
-            card.setAttribute('onclick', onclick);
-          }
-        }
-      });
-    });
-  } catch(e){ console.log('applyAdminPricing error:', e); }
-}
-applyAdminPricing();
 </script>
 </body>
 </html>

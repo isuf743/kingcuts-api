@@ -1,20 +1,26 @@
 <?php
-
-require 'settings.php';
-require 'logger.php';
-require 'mail.php';
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
+error_reporting(0);
+ini_set('display_errors', 0);
 
-if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){
-    http_response_code(200);
-    exit;
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'kingcuts_db');
+
+function getDB(){
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if($conn->connect_error){
+        http_response_code(500);
+        echo json_encode(array('error'=>'DB error: '.$conn->connect_error));
+        exit;
+    }
+    $conn->set_charset('utf8');
+    return $conn;
 }
-
-// ---------------- HELPERS ----------------
 
 function respond($data, $code=200){
     http_response_code($code);
@@ -22,214 +28,223 @@ function respond($data, $code=200){
     exit;
 }
 
-function getDB(){
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
-
-    if($conn->connect_error){
-        logError("DB_CONNECTION_ERROR", ['error'=>$conn->connect_error]);
-        respond(['error'=>'Database error'], 500);
-    }
-
-    $conn->set_charset('utf8');
-    return $conn;
-}
-
-// ---------------- AUTH ----------------
-
-function generateToken($username){
-    $payload = base64_encode(json_encode([
-        'user'=>$username,
-        'exp'=>time()+86400
-    ]));
-
-    $sig = hash_hmac('sha256', $payload, APP_SECRET);
-    return $payload.'.'.$sig;
-}
-
-function verifyToken($token){
-    $parts = explode('.', $token);
-    if(count($parts)!==2) return false;
-
-    [$payload,$sig] = $parts;
-    $valid = hash_hmac('sha256', $payload, APP_SECRET);
-
-    if(!hash_equals($valid,$sig)) return false;
-
-    $data = json_decode(base64_decode($payload), true);
-    if(!$data || $data['exp'] < time()) return false;
-
-    return $data;
-}
-
-function requireAuth(){
-    $headers = getallheaders();
-    $token = $headers['Authorization'] ?? '';
-
-    if(!$token || !verifyToken($token)){
-        respond(['error'=>'Unauthorized'], 401);
-    }
-}
-
-// ---------------- RATE LIMIT ----------------
-
-function rateLimit($key,$limit=5,$sec=60){
-    $file = __DIR__."/rate_$key.json";
-    $data = file_exists($file)?json_decode(file_get_contents($file),true):[];
-
-    $now=time();
-    $data = array_filter($data, fn($t)=>$t>$now-$sec);
-
-    if(count($data)>=$limit){
-        respond(['error'=>'Too many requests'],429);
-    }
-
-    $data[]=$now;
-    file_put_contents($file,json_encode($data));
-}
-
-// ---------------- INPUT ----------------
-
-$action = $_GET['action'] ?? '';
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 $method = $_SERVER['REQUEST_METHOD'];
+$raw = file_get_contents('php://input');
+$input = json_decode($raw, true);
+if(!is_array($input)) $input = array();
 
-$input = json_decode(file_get_contents('php://input'), true);
-if(!is_array($input)) $input = [];
-
-// SAFE LOG
-$safeInput = $input;
-unset($safeInput['password']);
-
-logError("REQUEST", [
-    'action'=>$action,
-    'method'=>$method,
-    'input'=>$safeInput
-], 'info');
-
-// ---------------- ADMIN LOGIN ----------------
-
-if($action==='admin_login' && $method==='POST'){
-    $db=getDB();
-
-    $u=$input['username']??'';
-    $p=$input['password']??'';
-
-    $stmt=$db->prepare("SELECT * FROM admins WHERE username=?");
-    $stmt->bind_param('s',$u);
+if($action === 'admin_login' && $method === 'POST'){
+    $username = trim(isset($input['username']) ? $input['username'] : '');
+    $password = trim(isset($input['password']) ? $input['password'] : '');
+    if(!$username || !$password) respond(array('error'=>'Plotesoni fushat'), 400);
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM admins WHERE username=?");
+    $stmt->bind_param('s', $username);
     $stmt->execute();
-
-    $a=$stmt->get_result()->fetch_assoc();
-
-    if($a && password_verify($p,$a['password'])){
-        respond([
-            'success'=>true,
-            'token'=>generateToken($u)
-        ]);
+    $admin = $stmt->get_result()->fetch_assoc();
+    if($admin && (password_verify($password, $admin['password']) || $password === $admin['password'])){
+        respond(array('success'=>true, 'token'=>base64_encode($username.':'.time())));
     }
-
-    respond(['error'=>'Login failed'],401);
+    respond(array('error'=>'Username ose password i gabuar'), 401);
 }
 
-// ---------------- ADD BOOKING ----------------
-
-if($action==='add_booking' && $method==='POST'){
-
-    rateLimit($_SERVER['REMOTE_ADDR']);
-
-    $db=getDB();
-
-    $name=$input['client_name']??'';
-    $phone=$input['client_phone']??'';
-    $email=$input['client_email']??'';
-    $barber=$input['barber_name']??'';
-    $service=$input['service_name']??'';
-    $price=$input['price']??'';
-    $date=$input['booking_date']??'';
-    $time=$input['booking_time']??'';
-
-    if(!$name||!$phone||!$date||!$time){
-        respond(['error'=>'Missing fields'],400);
-    }
-
-    $stmt=$db->prepare("
-        INSERT INTO bookings 
-        (client_name,client_phone,client_email,barber_name,service_name,price,booking_date,booking_time,status)
-        VALUES (?,?,?,?,?,?,?,?,?)
-    ");
-
-    $status='confirmed';
-
-    $stmt->bind_param('sssssssss',
-        $name,$phone,$email,$barber,$service,$price,$date,$time,$status
-    );
-
-    if(!$stmt->execute()){
-        logError("BOOKING_INSERT_FAIL", ['error'=>$stmt->error]);
-        respond(['error'=>'DB error'],500);
-    }
-
-    $id=$db->insert_id;
-
-    // EMAIL QUEUE
-    queueEmail($email,"Rezervimi juaj","Rezervimi u konfirmua");
-    queueEmail(ADMIN_EMAIL,"Rezervim i ri","Klient: $name");
-
-    logError("BOOKING_CREATED",$input,'info');
-
-    respond(['success'=>true,'id'=>$id]);
-}
-
-// ---------------- GET BOOKINGS ----------------
-
-if($action==='get_bookings'){
-    requireAuth();
-
-    $db=getDB();
-    $r=$db->query("SELECT * FROM bookings ORDER BY id DESC");
-
-    respond($r->fetch_all(MYSQLI_ASSOC));
-}
-
-// ---------------- DELETE ----------------
-
-if($action==='delete_booking'){
-    requireAuth();
-
-    $db=getDB();
-    $id=intval($input['id']??0);
-
-    $stmt=$db->prepare("DELETE FROM bookings WHERE id=?");
-    $stmt->bind_param('i',$id);
+if($action === 'check_admin' && $method === 'POST'){
+    $username = trim(isset($input['username']) ? $input['username'] : '');
+    $password = trim(isset($input['password']) ? $input['password'] : '');
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM admins WHERE username=?");
+    $stmt->bind_param('s', $username);
     $stmt->execute();
-
-    respond(['success'=>true]);
+    $admin = $stmt->get_result()->fetch_assoc();
+    if($admin && (password_verify($password, $admin['password']) || $password === $admin['password'])){
+        respond(array('success'=>true));
+    }
+    respond(array('error'=>'Gabim'), 401);
 }
 
-// ---------------- LOGS ----------------
-
-if($action==='get_logs'){
-    requireAuth();
-
-    $db=getDB();
-
-    $level=$_GET['level']??'';
-
-    $sql="SELECT * FROM logs";
-    if($level){
-        $sql.=" WHERE level='$level'";
-    }
-    $sql.=" ORDER BY id DESC LIMIT 100";
-
-    $res=$db->query($sql);
-
-    $logs=[];
-    while($r=$res->fetch_assoc()){
-        $r['context']=json_decode($r['context'],true);
-        $logs[]=$r;
-    }
-
-    respond($logs);
+if($action === 'setup_admin'){
+    $db = getDB();
+    $hash = password_hash('admin123', PASSWORD_BCRYPT);
+    $stmt = $db->prepare("INSERT INTO admins (username,password) VALUES ('admin',?) ON DUPLICATE KEY UPDATE password=?");
+    $stmt->bind_param('ss', $hash, $hash);
+    $stmt->execute();
+    respond(array('success'=>true, 'msg'=>'admin / admin123'));
 }
 
-// ---------------- DEFAULT ----------------
+if($action === 'get_bookings' && $method === 'GET'){
+    $db = getDB();
+    $status = isset($_GET['status']) ? $_GET['status'] : '';
+    $date = isset($_GET['date']) ? $_GET['date'] : '';
+    $sql = "SELECT * FROM bookings WHERE 1=1";
+    $params = array(); $types = '';
+    if($status){ $sql .= " AND status=?"; $params[] = $status; $types .= 's'; }
+    if($date){ $sql .= " AND booking_date=?"; $params[] = $date; $types .= 's'; }
+    $sql .= " ORDER BY booking_date ASC, booking_time ASC";
+    $stmt = $db->prepare($sql);
+    if($params) $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    respond($stmt->get_result()->fetch_all(MYSQLI_ASSOC));
+}
 
-respond(['error'=>'Invalid action'],404);
+if($action === 'add_booking' && $method === 'POST'){
+    $db = getDB();
+    $client_name  = isset($input['client_name'])  ? $input['client_name']  : '';
+    $client_phone = isset($input['client_phone']) ? $input['client_phone'] : '';
+    $client_email = isset($input['client_email']) ? $input['client_email'] : '';
+    $barber_name  = isset($input['barber_name'])  ? $input['barber_name']  : '';
+    $service_name = isset($input['service_name']) ? $input['service_name'] : '';
+    $price        = isset($input['price'])        ? $input['price']        : '';
+    $booking_date = isset($input['booking_date']) ? $input['booking_date'] : '';
+    $booking_time = isset($input['booking_time']) ? $input['booking_time'] : '';
+    if(!$client_name)  respond(array('error'=>'Emri mungon'), 400);
+    if(!$client_phone) respond(array('error'=>'Telefoni mungon'), 400);
+    if(!$booking_date) respond(array('error'=>'Data mungon'), 400);
+    if(!$booking_time) respond(array('error'=>'Ora mungon'), 400);
+    $chk = $db->prepare("SELECT id FROM bookings WHERE booking_date=? AND booking_time=? AND barber_name=? AND status!='cancelled'");
+    $chk->bind_param('sss', $booking_date, $booking_time, $barber_name);
+    $chk->execute();
+    if($chk->get_result()->num_rows > 0) respond(array('error'=>'Kjo ore eshte e zene!'), 400);
+    $blk = $db->prepare("SELECT id FROM schedules WHERE schedule_date=? AND blocked_time=? AND (barber_id=(SELECT id FROM barbers WHERE name=?) OR barber_id=0)");
+    $blk->bind_param('sss', $booking_date, $booking_time, $barber_name);
+    $blk->execute();
+    if($blk->get_result()->num_rows > 0) respond(array('error'=>'Kjo ore eshte e bllokuar!'), 400);
+    $status = 'pending';
+    $stmt = $db->prepare("INSERT INTO bookings (client_name,client_phone,client_email,barber_name,service_name,price,booking_date,booking_time,status) VALUES (?,?,?,?,?,?,?,?,?)");
+    $stmt->bind_param('sssssssss', $client_name,$client_phone,$client_email,$barber_name,$service_name,$price,$booking_date,$booking_time,$status);
+    if($stmt->execute()) respond(array('success'=>true, 'id'=>$db->insert_id));
+    else respond(array('error'=>$db->error), 500);
+}
+
+if($action === 'update_booking' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    $status = isset($input['status']) ? $input['status'] : '';
+    $allowed = array('pending','confirmed','completed','cancelled');
+    if(!$id || !in_array($status, $allowed)) respond(array('error'=>'Te dhena te pavlefshme'), 400);
+    $stmt = $db->prepare("UPDATE bookings SET status=? WHERE id=?");
+    $stmt->bind_param('si', $status, $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+if($action === 'delete_booking' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID e pavlefshme'), 400);
+    $stmt = $db->prepare("DELETE FROM bookings WHERE id=?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+if($action === 'get_barbers' && $method === 'GET'){
+    $db = getDB();
+    respond($db->query("SELECT * FROM barbers ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC));
+}
+
+if($action === 'add_barber' && $method === 'POST'){
+    $db = getDB();
+    $name = isset($input['name']) ? $input['name'] : '';
+    if(!$name) respond(array('error'=>'Emri mungon'), 400);
+    $role = isset($input['role']) ? $input['role'] : 'Berber';
+    $exp  = isset($input['experience']) ? $input['experience'] : '';
+    $spec = isset($input['specialties']) ? $input['specialties'] : '';
+    $stmt = $db->prepare("INSERT INTO barbers (name,role,experience,specialties) VALUES (?,?,?,?)");
+    $stmt->bind_param('ssss', $name,$role,$exp,$spec);
+    if($stmt->execute()) respond(array('success'=>true, 'id'=>$db->insert_id));
+    else respond(array('error'=>$db->error), 500);
+}
+
+if($action === 'toggle_barber' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID e pavlefshme'), 400);
+    $row = $db->query("SELECT active FROM barbers WHERE id=$id")->fetch_assoc();
+    if(!$row) respond(array('error'=>'Berberi nuk u gjet'), 404);
+    $newActive = ($row['active'] == 1) ? 0 : 1;
+    $db->query("UPDATE barbers SET active=$newActive WHERE id=$id");
+    respond(array('success'=>true, 'active'=>$newActive, 'id'=>$id));
+}
+
+if($action === 'delete_barber' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID e pavlefshme'), 400);
+    $stmt = $db->prepare("DELETE FROM barbers WHERE id=?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+if($action === 'get_stats' && $method === 'GET'){
+    $db = getDB();
+    $total    = $db->query("SELECT COUNT(*) as c FROM bookings")->fetch_assoc()['c'];
+    $today    = $db->query("SELECT COUNT(*) as c FROM bookings WHERE booking_date=CURDATE()")->fetch_assoc()['c'];
+    $pending  = $db->query("SELECT COUNT(*) as c FROM bookings WHERE status='pending'")->fetch_assoc()['c'];
+    $confirmed= $db->query("SELECT COUNT(*) as c FROM bookings WHERE status='confirmed'")->fetch_assoc()['c'];
+    $completed= $db->query("SELECT COUNT(*) as c FROM bookings WHERE status='completed'")->fetch_assoc()['c'];
+    $cancelled= $db->query("SELECT COUNT(*) as c FROM bookings WHERE status='cancelled'")->fetch_assoc()['c'];
+    $clients  = $db->query("SELECT COUNT(*) as c FROM users")->fetch_assoc()['c'];
+    $barbers  = $db->query("SELECT COUNT(*) as c FROM barbers WHERE active=1")->fetch_assoc()['c'];
+    $rev      = $db->query("SELECT SUM(CAST(REPLACE(REPLACE(price,' L',''),',','') AS DECIMAL(10,2))) as t FROM bookings WHERE status='completed' AND MONTH(booking_date)=MONTH(CURDATE())")->fetch_assoc();
+    $weekly   = $db->query("SELECT booking_date, COUNT(*) as count FROM bookings WHERE booking_date>=DATE_SUB(CURDATE(),INTERVAL 7 DAY) GROUP BY booking_date ORDER BY booking_date ASC")->fetch_all(MYSQLI_ASSOC);
+    respond(array('total_bookings'=>$total,'today_bookings'=>$today,'pending'=>$pending,'confirmed'=>$confirmed,'completed'=>$completed,'cancelled'=>$cancelled,'total_clients'=>$clients,'total_barbers'=>$barbers,'monthly_revenue'=>($rev?$rev['t']:0),'weekly'=>$weekly));
+}
+
+if($action === 'get_clients' && $method === 'GET'){
+    $db = getDB();
+    respond($db->query("SELECT id,name,email,phone,created_at FROM users ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC));
+}
+
+if($action === 'get_schedules' && $method === 'GET'){
+    $db = getDB();
+    respond($db->query("SELECT s.*, b.name as barber_name FROM schedules s LEFT JOIN barbers b ON s.barber_id=b.id ORDER BY s.schedule_date ASC, s.blocked_time ASC")->fetch_all(MYSQLI_ASSOC));
+}
+
+if($action === 'block_time' && $method === 'POST'){
+    $db = getDB();
+    $barber_id = intval(isset($input['barber_id']) ? $input['barber_id'] : 0);
+    $date = isset($input['date']) ? $input['date'] : '';
+    $time = isset($input['time']) ? $input['time'] : '';
+    $note = isset($input['note']) ? $input['note'] : '';
+    if(!$date || !$time) respond(array('error'=>'Data dhe ora jane te detyrueshme'), 400);
+    $dup = $db->prepare("SELECT id FROM schedules WHERE schedule_date=? AND blocked_time=? AND barber_id=?");
+    $dup->bind_param('ssi', $date, $time, $barber_id);
+    $dup->execute();
+    if($dup->get_result()->num_rows > 0) respond(array('error'=>'Kjo ore eshte tashme e bllokuar!'), 400);
+    $stmt = $db->prepare("INSERT INTO schedules (barber_id,schedule_date,blocked_time,note) VALUES (?,?,?,?)");
+    $stmt->bind_param('isss', $barber_id, $date, $time, $note);
+    if($stmt->execute()) respond(array('success'=>true, 'id'=>$db->insert_id));
+    else respond(array('error'=>$db->error), 500);
+}
+
+if($action === 'unblock_time' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID e pavlefshme'), 400);
+    $stmt = $db->prepare("DELETE FROM schedules WHERE id=?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+if($action === 'get_booked_slots' && $method === 'GET'){
+    $db = getDB();
+    $date = isset($_GET['date']) ? $_GET['date'] : '';
+    $barber_id = intval(isset($_GET['barber_id']) ? $_GET['barber_id'] : 0);
+    if(!$date) respond(array());
+    if($barber_id > 0){
+        $booked = $db->query("SELECT booking_time FROM bookings WHERE booking_date='$date' AND barber_name=(SELECT name FROM barbers WHERE id=$barber_id LIMIT 1) AND status!='cancelled'")->fetch_all(MYSQLI_ASSOC);
+        $blocked = $db->query("SELECT blocked_time as booking_time FROM schedules WHERE schedule_date='$date' AND barber_id=$barber_id")->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $booked = $db->query("SELECT booking_time FROM bookings WHERE booking_date='$date' AND status!='cancelled'")->fetch_all(MYSQLI_ASSOC);
+        $blocked = $db->query("SELECT blocked_time as booking_time FROM schedules WHERE schedule_date='$date'")->fetch_all(MYSQLI_ASSOC);
+    }
+    $times = array();
+    foreach(array_merge($booked,$blocked) as $r) $times[] = substr($r['booking_time'],0,5);
+    respond(array_values(array_unique($times)));
+}
+
+respond(array('error'=>'Action e panjohur: '.$action), 404);
+?>
