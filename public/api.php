@@ -388,5 +388,52 @@ if($action === 'delete_review' && $method === 'POST'){
     respond(array('success'=>true));
 }
 
+
+// GET BARBER STATS (per berberin e caktuar)
+if($action === 'get_barber_stats' && $method === 'GET'){
+    $db = getDB();
+    $barber_name = isset($_GET['barber_name']) ? $_GET['barber_name'] : '';
+    if(!$barber_name) respond(array('error'=>'Emri i berberit mungon'), 400);
+    
+    $total    = $db->query("SELECT COUNT(*) as c FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."'")->fetch_assoc()['c'];
+    $today    = $db->query("SELECT COUNT(*) as c FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."' AND booking_date=CURDATE()")->fetch_assoc()['c'];
+    $confirmed= $db->query("SELECT COUNT(*) as c FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."' AND status='confirmed'")->fetch_assoc()['c'];
+    $completed= $db->query("SELECT COUNT(*) as c FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."' AND status='completed'")->fetch_assoc()['c'];
+    $rev      = $db->query("SELECT SUM(CAST(REPLACE(REPLACE(price,' L',''),',','') AS DECIMAL(10,2))) as t FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."' AND status='completed' AND MONTH(booking_date)=MONTH(CURDATE())")->fetch_assoc();
+    $weekly   = $db->query("SELECT booking_date, COUNT(*) as count FROM bookings WHERE barber_name='".mysqli_real_escape_string($db,$barber_name)."' AND booking_date>=DATE_SUB(CURDATE(),INTERVAL 7 DAY) GROUP BY booking_date ORDER BY booking_date ASC")->fetch_all(MYSQLI_ASSOC);
+    
+    respond(array(
+        'total_bookings'=>$total,
+        'today_bookings'=>$today,
+        'confirmed'=>$confirmed,
+        'completed'=>$completed,
+        'monthly_revenue'=>($rev?$rev['t']:0),
+        'weekly'=>$weekly
+    ));
+}
+
+// GET BOOKINGS FOR BARBER
+if($action === 'get_barber_bookings' && $method === 'GET'){
+    $db = getDB();
+    $barber_name = isset($_GET['barber_name']) ? $_GET['barber_name'] : '';
+    $status = isset($_GET['status']) ? $_GET['status'] : '';
+    if(!$barber_name) respond(array('error'=>'Emri mungon'), 400);
+    
+    $bn = mysqli_real_escape_string($db, $barber_name);
+    $sql = "SELECT * FROM bookings WHERE barber_name='$bn'";
+    if($status && $status !== 'all') $sql .= " AND status='".mysqli_real_escape_string($db,$status)."'";
+    $sql .= " ORDER BY booking_date ASC, booking_time ASC";
+    respond($db->query($sql)->fetch_all(MYSQLI_ASSOC));
+}
+
+// GET SCHEDULES FOR BARBER
+if($action === 'get_barber_schedules' && $method === 'GET'){
+    $db = getDB();
+    $barber_id = intval(isset($_GET['barber_id']) ? $_GET['barber_id'] : 0);
+    if(!$barber_id) respond(array('error'=>'ID mungon'), 400);
+    $rows = $db->query("SELECT * FROM schedules WHERE barber_id=$barber_id ORDER BY schedule_date ASC, blocked_time ASC")->fetch_all(MYSQLI_ASSOC);
+    respond($rows);
+}
+
 respond(array('error'=>'Action e panjohur: '.$action), 404);
 ?>

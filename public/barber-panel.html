@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>King Cuts — Paneli i Berberit</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c9a84c;--gold-light:#F5C842;--dark:#1a1208;--bg:#f7f3ec;--bg2:#fff;
+  --border:#e8d8a8;--text:#2c2410;--muted:#9e8c70;--red:#e74c3c;--green:#27ae60;--blue:#2980b9;
+  --card:#fff;--sidebar-w:240px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dark)}
+.login-box{background:#fff;border:2px solid var(--border);border-radius:8px;padding:3rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--gold);text-align:center;margin-bottom:.3rem}
+.login-sub{text-align:center;font-size:.85rem;color:var(--muted);margin-bottom:2rem}
+.login-box input{width:100%;padding:.9rem 1rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none;margin-bottom:1rem;transition:border-color .25s}
+.login-box input:focus{border-color:var(--gold);background:#fff}
+.login-btn{width:100%;padding:1rem;background:var(--gold);color:var(--dark);border:none;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.login-btn:hover{background:var(--gold-light)}
+.login-error{background:#fff5f5;border:1px solid var(--red);color:var(--red);padding:.8rem 1rem;border-radius:4px;font-size:.85rem;margin-bottom:1rem;display:none}
+
+/* LAYOUT */
+.app{display:none;min-height:100vh}
+.app.visible{display:flex}
+.sidebar{width:var(--sidebar-w);background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:1.8rem 1.5rem 1.2rem;border-bottom:1px solid rgba(232,192,112,.15)}
+.sidebar-logo span{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold-light);display:block}
+.sidebar-logo small{font-size:.7rem;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase}
+.barber-badge{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:.4rem 1rem;margin:1rem 1.5rem;text-align:center}
+.barber-badge span{color:var(--gold-light);font-size:.8rem;font-weight:600}
+.sidebar-nav{padding:1rem 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:.8rem;padding:.85rem 1.5rem;color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-item.active{color:var(--gold-light);background:rgba(245,200,66,.08);border-left-color:var(--gold-light)}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid rgba(232,192,112,.15)}
+.logout-btn{width:100%;padding:.7rem;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;padding:2rem;min-height:100vh}
+.section{display:none}
+.section.active{display:block}
+.page-header{margin-bottom:2rem}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--dark)}
+.page-header p{color:var(--muted);font-size:.9rem;margin-top:.3rem}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.2rem;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:1.5rem;text-align:center}
+.stat-card.gold{border-color:var(--gold);background:linear-gradient(135deg,#fffbf0,#fff8e1)}
+.stat-card.green{border-color:#a8d5b5;background:linear-gradient(135deg,#f0fff4,#e8f8ed)}
+.stat-card.blue{border-color:#a8c5e0;background:linear-gradient(135deg,#f0f7ff,#e8f0f8)}
+.stat-icon{font-size:1.8rem;margin-bottom:.5rem}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--dark)}
+.stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:.3rem}
+
+/* CHART */
+.chart-card{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:1.5rem;margin-top:1.5rem}
+.chart-card h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--dark);margin-bottom:1rem}
+.chart-bars{display:flex;align-items:flex-end;gap:.5rem;height:120px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.chart-bar{width:100%;background:linear-gradient(to top,var(--gold),var(--gold-light));border-radius:3px 3px 0 0;min-height:4px;transition:height .5s}
+.chart-bar-label{font-size:.65rem;color:var(--muted)}
+.chart-bar-val{font-size:.7rem;font-weight:700;color:var(--dark)}
+
+/* TABLE */
+.table-card{background:var(--card);border:2px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+.table-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--dark)}
+table{width:100%;border-collapse:collapse}
+th{background:var(--dark);color:rgba(255,255,255,.8);padding:.8rem 1rem;text-align:left;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+td{padding:.9rem 1rem;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf6ee}
+
+/* STATUS PILLS */
+.status-row{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.status-pill{padding:.4rem 1rem;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.status-pill.all{background:#f0ebe0;color:var(--muted);border-color:var(--border)}
+.status-pill.confirmed{background:#e8f8ed;color:#27ae60;border-color:#a8d5b5}
+.status-pill.completed{background:#e8f0f8;color:#2980b9;border-color:#a8c5e0}
+.status-pill.cancelled{background:#fff0f0;color:var(--red);border-color:#f5c0c0}
+.status-pill.active-filter{border-color:var(--gold);background:linear-gradient(135deg,#fffbf0,#fff8e1);color:var(--dark)}
+
+.badge{padding:.25rem .7rem;border-radius:12px;font-size:.72rem;font-weight:700;text-transform:uppercase}
+.badge-confirmed{background:#e8f8ed;color:#27ae60}
+.badge-completed{background:#e8f0f8;color:#2980b9}
+.badge-cancelled{background:#fff0f0;color:var(--red)}
+.badge-pending{background:#fff8e1;color:#f39c12}
+
+.action-btn{padding:.35rem .8rem;border-radius:4px;border:none;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
+.action-btn.green{background:#e8f8ed;color:#27ae60}
+.action-btn.green:hover{background:#27ae60;color:#fff}
+.action-btn.blue{background:#e8f0f8;color:#2980b9}
+.action-btn.red{background:#fff0f0;color:var(--red)}
+.action-btn.red:hover{background:var(--red);color:#fff}
+
+/* SCHEDULE */
+.schedule-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.schedule-card{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:1.2rem}
+.schedule-card h4{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--dark);margin-bottom:.8rem}
+.slot-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid #f5f0e8;font-size:.85rem}
+.slot-row:last-child{border-bottom:none}
+
+.loading{padding:2rem;text-align:center;color:var(--muted);font-style:italic}
+.empty{padding:2rem;text-align:center;color:var(--muted)}
+
+/* FORM */
+.form-group{margin-bottom:1.2rem}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.85rem 1rem;border:2px solid var(--border);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .25s}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);background:#fff}
+.btn-save{padding:.9rem 2rem;background:var(--gold);color:var(--dark);border:none;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.btn-save:hover{background:var(--gold-light)}
+.btn-danger{padding:.9rem 2rem;background:#fff0f0;color:var(--red);border:2px solid var(--red);border-radius:4px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="login-page">
+  <div class="login-box">
+    <div class="login-logo">✂ King Cuts</div>
+    <div class="login-sub">Paneli i Berberit</div>
+    <div class="login-error" id="login-error"></div>
+    <input type="text" id="b-username" placeholder="Username" autocomplete="username">
+    <input type="password" id="b-password" placeholder="Password" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Hyr →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>King Cuts</span>
+      <small>Paneli i Berberit</small>
+    </div>
+    <div class="barber-badge">
+      <span id="sidebar-name">— Berberi —</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showSection('stats')"><span>📊</span> Statistikat e Mia</div>
+      <div class="nav-item" onclick="showSection('bookings')"><span>📅</span> Rezervimet e Mia</div>
+      <div class="nav-item" onclick="showSection('schedule')"><span>🕐</span> Orari Im</div>
+      <div class="nav-item" onclick="showSection('profile')"><span>🔑</span> Ndrysho Password</div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">⬅ Dilni</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- STATS -->
+    <section class="section active" id="sec-stats">
+      <div class="page-header">
+        <h1>Statistikat e Mia</h1>
+        <p id="stats-subtitle">Pamje e përgjithshme e punës sime</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card gold"><div class="stat-icon">📅</div><div class="stat-val" id="st-total">—</div><div class="stat-label">Gjithsej Rezervime</div></div>
+        <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-val" id="st-today">—</div><div class="stat-label">Sot</div></div>
+        <div class="stat-card blue"><div class="stat-icon">🏆</div><div class="stat-val" id="st-completed">—</div><div class="stat-label">Të Përfunduara</div></div>
+        <div class="stat-card gold"><div class="stat-icon">💰</div><div class="stat-val" id="st-revenue">—</div><div class="stat-label">Fitimi Këtë Muaj</div></div>
+      </div>
+      <div class="chart-card">
+        <h3>📈 Rezervimet — 7 Ditët e Fundit</h3>
+        <div class="chart-bars" id="chart-bars"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+    </section>
+
+    <!-- BOOKINGS -->
+    <section class="section" id="sec-bookings">
+      <div class="page-header">
+        <h1>Rezervimet e Mia</h1>
+        <p>Të gjitha rezervimet e mia</p>
+      </div>
+      <div class="status-row">
+        <div class="status-pill all active-filter" onclick="filterBookings('all',this)">Të Gjitha</div>
+        <div class="status-pill confirmed" onclick="filterBookings('confirmed',this)">✔ Konfirmuara</div>
+        <div class="status-pill completed" onclick="filterBookings('completed',this)">🏆 Përfunduara</div>
+        <div class="status-pill cancelled" onclick="filterBookings('cancelled',this)">❌ Anulluara</div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Lista e Rezervimeve</h3></div>
+        <div id="bookings-table"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="section" id="sec-schedule">
+      <div class="page-header">
+        <h1>Orari Im</h1>
+        <p>Orët e bllokuara dhe rezervimet sipas datës</p>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Orët e Bllokuara</h3></div>
+        <div id="schedule-table"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+      <div class="table-card" style="margin-top:1.5rem">
+        <div class="table-header"><h3>Bllokoer Orë të Re</h3></div>
+        <div style="padding:1.5rem">
+          <div class="form-group"><label>Data</label><input type="date" id="blk-date" min=""></div>
+          <div class="form-group"><label>Ora</label>
+            <select id="blk-time">
+              <option value="">Zgjidh orën...</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Shënim (opsional)</label><input type="text" id="blk-note" placeholder="p.sh. Pushim, Takim..."></div>
+          <button class="btn-save" onclick="blockTime()">🔒 Bllokoer Orën</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="section" id="sec-profile">
+      <div class="page-header">
+        <h1>Ndrysho Password</h1>
+        <p>Ndryshoni fjalëkalimin tuaj</p>
+      </div>
+      <div class="table-card">
+        <div style="padding:1.5rem;max-width:400px">
+          <div class="form-group"><label>Password i Ri</label><input type="password" id="new-pass" placeholder="Minimum 6 karaktere"></div>
+          <div class="form-group"><label>Konfirmo Password-in</label><input type="password" id="confirm-pass" placeholder="Përsërit password-in"></div>
+          <button class="btn-save" onclick="changePassword()">💾 Ruaj Password-in</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const API = 'https://kingcuts-api-production.up.railway.app/api.php';
+var barberData = null; // {barber_id, barber_name, token}
+
+// ── LOGIN ──
+function doLogin(){
+  var u = document.getElementById('b-username').value.trim();
+  var p = document.getElementById('b-password').value.trim();
+  var err = document.getElementById('login-error');
+  if(!u||!p){err.textContent='Plotesoni fushat!';err.style.display='block';return;}
+  err.style.display='none';
+  fetch(API+'?action=barber_login',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:u,password:p})
+  }).then(r=>r.json()).then(res=>{
+    if(res.success){
+      barberData = {barber_id:res.barber_id, barber_name:res.barber_name, token:res.token};
+      localStorage.setItem('barberSession', JSON.stringify(barberData));
+      initApp();
+    } else {
+      err.textContent = res.error||'Username ose password i gabuar';
+      err.style.display='block';
+    }
+  }).catch(()=>{err.textContent='Gabim lidhjeje!';err.style.display='block';});
+}
+
+function doLogout(){
+  localStorage.removeItem('barberSession');
+  barberData = null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-page').style.display='flex';
+}
+
+function initApp(){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sidebar-name').textContent = barberData.barber_name;
+  document.getElementById('stats-subtitle').textContent = 'Statistikat e ' + barberData.barber_name;
+  
+  // Setup time slots per bllokimin e oreve
+  setupTimeSlots();
+  // Set min date per input
+  document.getElementById('blk-date').min = new Date().toISOString().split('T')[0];
+  
+  loadStats();
+}
+
+// ── CHECK SESSION ──
+window.onload = function(){
+  var saved = localStorage.getItem('barberSession');
+  if(saved){
+    try{
+      barberData = JSON.parse(saved);
+      initApp();
+    } catch(e){ localStorage.removeItem('barberSession'); }
+  }
+}
+
+// ── NAVIGATION ──
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(event && event.currentTarget) event.currentTarget.classList.add('active');
+  if(name==='stats') loadStats();
+  if(name==='bookings') loadBookings('all');
+  if(name==='schedule') loadSchedule();
+}
+
+// ── API HELPER ──
+async function api(action, body=null, qs=''){
+  const opts = {method: body ? 'POST' : 'GET', headers:{'Content-Type':'application/json'}};
+  if(body) opts.body = JSON.stringify(body);
+  const url = API + '?action=' + action + (qs?'&'+qs:'');
+  const r = await fetch(url, opts);
+  return r.json();
+}
+
+// ── STATS ──
+async function loadStats(){
+  const s = await api('get_barber_stats', null, 'barber_name='+encodeURIComponent(barberData.barber_name));
+  document.getElementById('st-total').textContent = s.total_bookings||0;
+  document.getElementById('st-today').textContent = s.today_bookings||0;
+  document.getElementById('st-completed').textContent = s.completed||0;
+  document.getElementById('st-revenue').textContent = (s.monthly_revenue||0) + ' L';
+  
+  // Chart
+  const weekly = s.weekly||[];
+  const max = Math.max(...weekly.map(w=>parseInt(w.count)),1);
+  const bars = document.getElementById('chart-bars');
+  if(!weekly.length){bars.innerHTML='<div class="empty">Nuk ka të dhëna ende.</div>';return;}
+  bars.innerHTML = weekly.map(w=>{
+    const pct = Math.round((parseInt(w.count)/max)*100);
+    const d = new Date(w.booking_date);
+    const label = d.getDate()+'/'+(d.getMonth()+1);
+    return `<div class="chart-bar-wrap">
+      <div class="chart-bar-val">${w.count}</div>
+      <div class="chart-bar" style="height:${pct}%"></div>
+      <div class="chart-bar-label">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── BOOKINGS ──
+var currentFilter = 'all';
+async function loadBookings(status){
+  currentFilter = status;
+  const div = document.getElementById('bookings-table');
+  div.innerHTML = '<div class="loading">Duke ngarkuar...</div>';
+  const qs = 'barber_name='+encodeURIComponent(barberData.barber_name)+(status&&status!=='all'?'&status='+status:'');
+  const rows = await api('get_barber_bookings', null, qs);
+  if(!rows||!rows.length){div.innerHTML='<div class="empty">Nuk ka rezervime.</div>';return;}
+  let html = '<table><thead><tr><th>Klienti</th><th>Telefoni</th><th>Sherbimi</th><th>Data</th><th>Ora</th><th>Cmimi</th><th>Statusi</th><th>Veprime</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const badges = {confirmed:'badge-confirmed',completed:'badge-completed',cancelled:'badge-cancelled',pending:'badge-pending'};
+    const labels = {confirmed:'Konfirmuar',completed:'Perfunduar',cancelled:'Anulluar',pending:'Pritje'};
+    html += `<tr>
+      <td><strong>${r.client_name}</strong></td>
+      <td>${r.client_phone}</td>
+      <td>${r.service_name}</td>
+      <td>${r.booking_date}</td>
+      <td>${r.booking_time ? r.booking_time.substring(0,5) : ''}</td>
+      <td><strong>${r.price}</strong></td>
+      <td><span class="badge ${badges[r.status]||''}">${labels[r.status]||r.status}</span></td>
+      <td>
+        ${r.status==='confirmed'?`<button class="action-btn blue" onclick="updateStatus(${r.id},'completed')">✔ Perfundo</button>`:''}
+        ${r.status==='confirmed'?`<button class="action-btn red" style="margin-left:.3rem" onclick="updateStatus(${r.id},'cancelled')">✕ Anulo</button>`:''}
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+function filterBookings(status, el){
+  document.querySelectorAll('.status-pill').forEach(p=>p.classList.remove('active-filter'));
+  el.classList.add('active-filter');
+  loadBookings(status);
+}
+
+async function updateStatus(id, status){
+  const labels = {completed:'Shëno si të Përfunduar?', cancelled:'Anulo këtë rezervim?'};
+  if(!confirm(labels[status]||'Vazhdo?')) return;
+  await api('update_booking', {id, status});
+  loadBookings(currentFilter);
+}
+
+// ── SCHEDULE ──
+async function loadSchedule(){
+  const div = document.getElementById('schedule-table');
+  div.innerHTML = '<div class="loading">Duke ngarkuar...</div>';
+  const rows = await api('get_barber_schedules', null, 'barber_id='+barberData.barber_id);
+  if(!rows||!rows.length){div.innerHTML='<div class="empty">Nuk ka orë të bllokuara.</div>';return;}
+  
+  // Grupohen sipas dates
+  const byDate = {};
+  rows.forEach(r=>{
+    if(!byDate[r.schedule_date]) byDate[r.schedule_date]=[];
+    byDate[r.schedule_date].push(r);
+  });
+  
+  let html = '<table><thead><tr><th>Data</th><th>Ora</th><th>Shënim</th><th>Veprime</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    html += `<tr>
+      <td>${r.schedule_date}</td>
+      <td><strong>${r.blocked_time ? r.blocked_time.substring(0,5) : ''}</strong></td>
+      <td>${r.note||'—'}</td>
+      <td><button class="action-btn red" onclick="unblockTime(${r.id})">🔓 Hiq</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+function setupTimeSlots(){
+  const sel = document.getElementById('blk-time');
+  sel.innerHTML = '<option value="">Zgjidh orën...</option>';
+  for(let h=8;h<=20;h++){
+    for(let m=0;m<60;m+=30){
+      const hh = String(h).padStart(2,'0');
+      const mm = String(m).padStart(2,'0');
+      sel.innerHTML += `<option value="${hh}:${mm}">${hh}:${mm}</option>`;
+    }
+  }
+}
+
+async function blockTime(){
+  const date = document.getElementById('blk-date').value;
+  const time = document.getElementById('blk-time').value;
+  const note = document.getElementById('blk-note').value.trim();
+  if(!date||!time){alert('Zgjidh datën dhe orën!');return;}
+  const res = await api('block_time',{barber_id:barberData.barber_id, date, time, note});
+  if(res.success){
+    document.getElementById('blk-date').value='';
+    document.getElementById('blk-time').value='';
+    document.getElementById('blk-note').value='';
+    loadSchedule();
+    alert('✅ Ora u bllokua!');
+  } else { alert('Gabim: '+(res.error||'E panjohur')); }
+}
+
+async function unblockTime(id){
+  if(!confirm('Hiq bllokimin e kësaj ore?')) return;
+  await api('unblock_time',{id});
+  loadSchedule();
+}
+
+// ── PASSWORD CHANGE ──
+async function changePassword(){
+  const np = document.getElementById('new-pass').value.trim();
+  const cp = document.getElementById('confirm-pass').value.trim();
+  if(!np||!cp){alert('Plotesoni të dyja fushat!');return;}
+  if(np.length<6){alert('Password minimum 6 karaktere!');return;}
+  if(np!==cp){alert('Password-et nuk përputhen!');return;}
+  const res = await api('save_barber_account',{
+    barber_id: barberData.barber_id,
+    username: document.getElementById('b-username').value || 'user',
+    password: np
+  });
+  if(res.success){
+    alert('✅ Password u ndryshua! Hyrja tjetër bëhet me password-in e ri.');
+    document.getElementById('new-pass').value='';
+    document.getElementById('confirm-pass').value='';
+  } else { alert('Gabim: '+(res.error||'E panjohur')); }
+}
+
+// Enter key login
+document.getElementById('b-password').addEventListener('keydown',function(e){
+  if(e.key==='Enter') doLogin();
+});
+</script>
+</body>
+</html>
