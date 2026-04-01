@@ -267,6 +267,33 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 @keyframes logoPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 @keyframes loadFill{0%{width:0%;}100%{width:100%;}}
+
+/* ANULIM */
+.cancel-btn{
+  display:block;margin:1rem auto 0;padding:.7rem 2rem;
+  background:transparent;border:2px solid #e74c3c;color:#e74c3c;
+  border-radius:4px;font-family:'Outfit',sans-serif;font-size:.8rem;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:all .25s;
+}
+.cancel-btn:hover{background:#e74c3c;color:#fff;}
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:#fff;border-radius:8px;padding:2rem;max-width:420px;width:90%;
+  border:2px solid #e8d8a8;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  text-align:center;
+}
+.modal-box h3{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#1a1208;margin-bottom:.5rem;}
+.modal-box p{color:#9e8c70;font-size:.9rem;margin-bottom:1.5rem;}
+.modal-btns{display:flex;gap:1rem;justify-content:center;}
+.modal-btn-cancel{padding:.8rem 1.8rem;background:#e74c3c;color:#fff;border:none;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;}
+.modal-btn-back{padding:.8rem 1.8rem;background:#f0ebe0;color:#7a6a50;border:none;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;}
+.cancel-form input{width:100%;padding:.85rem 1rem;border:2px solid #e8d8a8;border-radius:4px;font-family:'Outfit',sans-serif;font-size:.9rem;margin-bottom:1rem;outline:none;}
+.cancel-form input:focus{border-color:#c9a84c;}
 </style>
 </head>
 <body>
@@ -533,7 +560,24 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
         <div class="sdet-row"><span>Cmimi</span><span id="s-price">--</span></div>
       </div>
       <button class="hero-cta" onclick="resetAll()">&larr; Kthehu ne Faqen Kryesore</button>
+      <button class="cancel-btn" onclick="openCancelModal()">✕ Anulo Rezervimin</button>
     </div>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal-box">
+    <h3>⚠ Anulo Rezervimin</h3>
+    <p>Shkruaj numrin tuaj të telefonit për të konfirmuar anulimin.</p>
+    <div class="cancel-form">
+      <input type="tel" id="cancel-phone" placeholder="+355 6X XXX XXXX">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-back" onclick="closeCancelModal()">← Kthehu</button>
+      <button class="modal-btn-cancel" onclick="confirmCancel()">✕ Anulo Rezervimin</button>
+    </div>
+    <div id="cancel-msg" style="margin-top:1rem;font-size:.85rem;color:#e74c3c;display:none"></div>
   </div>
 </div>
 
@@ -808,7 +852,7 @@ function submitBooking(){
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({client_name:name,client_phone:phone,client_email:email,barber_name:booking.barber,service_name:booking.service,price:booking.price,booking_date:selDate,booking_time:selSlot})
   }).then(function(r){return r.json();})
-    .then(function(res){if(res.success)console.log('Rezervimi u ruajt! ID:'+res.id);else console.log('Gabim:',res.error);})
+    .then(function(res){if(res.success){ lastBookingId = res.id; console.log('Rezervimi u ruajt! ID:'+res.id); } else console.log('Gabim:',res.error);})
     .catch(function(e){console.log('Error:',e);});
   if(email){
     fetch('https://kingcuts-api-production.up.railway.app/api.php?action=send_email',{
@@ -882,6 +926,46 @@ function resetAll(){
   document.querySelectorAll('.barber-card').forEach(function(c){c.classList.remove('selected-barber');});
   document.querySelectorAll('.slot-btn').forEach(function(b){b.classList.remove('selected');});
   goPage('p-home');
+}
+
+// ── ANULIM REZERVIMI ──
+var lastBookingId = 0;
+
+function openCancelModal(){
+  document.getElementById('cancel-phone').value = '';
+  document.getElementById('cancel-msg').style.display = 'none';
+  document.getElementById('cancel-modal').classList.add('open');
+}
+
+function closeCancelModal(){
+  document.getElementById('cancel-modal').classList.remove('open');
+}
+
+function confirmCancel(){
+  var phone = document.getElementById('cancel-phone').value.trim();
+  var msg = document.getElementById('cancel-msg');
+  if(!phone){ msg.textContent='Shkruaj numrin e telefonit!'; msg.style.display='block'; return; }
+  if(!lastBookingId){ msg.textContent='Rezervimi nuk u gjet!'; msg.style.display='block'; return; }
+
+  msg.style.display = 'none';
+  fetch('https://kingcuts-api-production.up.railway.app/api.php?action=cancel_booking_client',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id: lastBookingId, phone: phone})
+  }).then(function(r){return r.json();})
+  .then(function(res){
+    if(res.success){
+      closeCancelModal();
+      showToast('✓ Rezervimi u anulua me sukses!');
+      setTimeout(function(){ resetAll(); }, 2000);
+    } else {
+      msg.textContent = res.error || 'Numri i telefonit nuk përputhet!';
+      msg.style.display = 'block';
+    }
+  }).catch(function(){
+    msg.textContent = 'Gabim lidhje!';
+    msg.style.display = 'block';
+  });
 }
 
 // Ngarko reviews nga DB kur hapet faqja

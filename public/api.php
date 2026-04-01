@@ -435,5 +435,29 @@ if($action === 'get_barber_schedules' && $method === 'GET'){
     respond($rows);
 }
 
+
+// ANULIM REZERVIMI NGA KLIENTI (verifikon me telefon)
+if($action === 'cancel_booking_client' && $method === 'POST'){
+    $db = getDB();
+    $id    = intval(isset($input['id'])    ? $input['id']    : 0);
+    $phone = trim(isset($input['phone'])   ? $input['phone'] : '');
+    if(!$id || !$phone) respond(array('error'=>'Te dhena mungojne'), 400);
+    
+    // Verifiko telefoni
+    $stmt = $db->prepare("SELECT id, status FROM bookings WHERE id=? AND client_phone=?");
+    $stmt->bind_param('is', $id, $phone);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    
+    if(!$row) respond(array('error'=>'Numri i telefonit nuk perputhet me rezervimin!'), 400);
+    if($row['status'] === 'cancelled') respond(array('error'=>'Rezervimi eshte tashme i anuluar!'), 400);
+    if($row['status'] === 'completed') respond(array('error'=>'Rezervimi eshte perfunduar dhe nuk mund te anulohet!'), 400);
+    
+    $stmt2 = $db->prepare("UPDATE bookings SET status='cancelled' WHERE id=?");
+    $stmt2->bind_param('i', $id);
+    $stmt2->execute();
+    respond(array('success'=>true));
+}
+
 respond(array('error'=>'Action e panjohur: '.$action), 404);
 ?>
