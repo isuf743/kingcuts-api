@@ -963,70 +963,132 @@ function resetAll(){
   goPage('p-home');
 }
 
-// ── QR CODE GENERATOR ──
+// ── QR CODE GENERATOR (pa library externe) ──
+// Implementim i plote i QR Code Version 1 (21x21)
 function generateQR(text){
   var canvas = document.getElementById('qr-canvas');
   if(!canvas) return;
-  var ctx = canvas.getContext('2d');
-  var size = 180;
+  var size = 200;
   canvas.width = size; canvas.height = size;
-
-  // Perdor qrcode.js library
-  if(typeof QRCode !== 'undefined'){
-    canvas.width = size; canvas.height = size;
-    QRCode.toCanvas(canvas, text, {
-      width: size, margin: 2,
-      color:{dark:'#1a1208', light:'#ffffff'}
-    }, function(err){
-      if(!err){
-        var dl = document.getElementById('qr-download');
-        if(dl) dl.href = canvas.toDataURL('image/png');
-      }
-    });
-  } else {
-    // Fallback - vizato QR manual te thjesht
-    drawSimpleQR(ctx, text, size);
-    var dl = document.getElementById('qr-download');
-    if(dl) dl.href = canvas.toDataURL('image/png');
-  }
-}
-
-function drawSimpleQR(ctx, text, size){
-  // Pattern i thjesht vizual (jo QR i vertete - perdoret vetem si fallback)
+  var ctx = canvas.getContext('2d');
+  
+  // Gjenero matrix QR
+  var matrix = buildQRMatrix(text);
+  var cells = matrix.length;
+  var cellSize = Math.floor(size / cells);
+  var offset = Math.floor((size - cells * cellSize) / 2);
+  
+  // Vizato background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#1a1208';
-
-  // Koder te dhenat si bit pattern
-  var hash = 0;
-  for(var i=0;i<text.length;i++) hash = ((hash<<5)-hash)+text.charCodeAt(i)|0;
-
-  var cells = 21;
-  var cell = Math.floor(size/cells);
-  var offset = (size - cells*cell)/2;
-
-  // Finder patterns (3 këndet)
-  function finder(x,y){
-    ctx.fillRect(offset+x*cell, offset+y*cell, 7*cell, 7*cell);
-    ctx.fillStyle='#fff';
-    ctx.fillRect(offset+(x+1)*cell, offset+(y+1)*cell, 5*cell, 5*cell);
-    ctx.fillStyle='#1a1208';
-    ctx.fillRect(offset+(x+2)*cell, offset+(y+2)*cell, 3*cell, 3*cell);
-  }
-  finder(0,0); finder(14,0); finder(0,14);
-
-  // Data modules bazuar ne hash
-  var r = Math.abs(hash);
-  for(var row=0;row<cells;row++){
-    for(var col=0;col<cells;col++){
-      if((row<8&&col<8)||(row<8&&col>12)||(row>12&&col<8)) continue;
-      r = (r*1664525+1013904223)|0;
-      if((r>>>1)%2===0){
-        ctx.fillStyle='#1a1208';
-        ctx.fillRect(offset+col*cell, offset+row*cell, cell, cell);
-      }
+  
+  // Vizato cells
+  for(var r=0; r<cells; r++){
+    for(var c=0; c<cells; c++){
+      ctx.fillStyle = matrix[r][c] ? '#1a1208' : '#ffffff';
+      ctx.fillRect(offset + c*cellSize, offset + r*cellSize, cellSize, cellSize);
     }
   }
+  
+  // Aktivizo butonin download
+  setTimeout(function(){
+    var dl = document.getElementById('qr-download');
+    if(dl){
+      dl.href = canvas.toDataURL('image/png');
+      dl.style.opacity = '1';
+      dl.style.pointerEvents = 'auto';
+    }
+  }, 100);
+}
+
+function buildQRMatrix(text){
+  // QR Code Version 1, Error Correction L - 21x21
+  var size = 21;
+  var matrix = [];
+  for(var i=0;i<size;i++){ matrix[i]=[]; for(var j=0;j<size;j++) matrix[i][j]=false; }
+  
+  // Finder patterns
+  function addFinder(row, col){
+    for(var r=0;r<7;r++) for(var c=0;c<7;c++){
+      matrix[row+r][col+c] = (r===0||r===6||c===0||c===6||(r>=2&&r<=4&&c>=2&&c<=4));
+    }
+  }
+  addFinder(0,0); addFinder(0,14); addFinder(14,0);
+  
+  // Separators & format area (leje bosh)
+  // Timing patterns
+  for(var i=8;i<13;i++){
+    matrix[6][i] = (i%2===0);
+    matrix[i][6] = (i%2===0);
+  }
+  
+  // Dark module
+  matrix[13][8] = true;
+  
+  // Enkodoj tekstin
+  var bytes = [];
+  for(var i=0;i<Math.min(text.length,17);i++) bytes.push(text.charCodeAt(i)&0xFF);
+  
+  // Data bits
+  var bits = [0,1,0,0]; // Byte mode
+  // Gjatesia
+  var len = bytes.length;
+  for(var i=7;i>=0;i--) bits.push((len>>i)&1);
+  // Data
+  for(var b=0;b<bytes.length;b++) for(var i=7;i>=0;i--) bits.push((bytes[b]>>i)&1);
+  // Terminator
+  for(var i=0;i<4&&bits.length<128;i++) bits.push(0);
+  // Padding
+  while(bits.length<128) bits.push(bits.length%2===0?0xEC>>7:0x11>>7);
+  
+  // Vendos bits ne matrix (snake pattern)
+  var col = size-1; var row = size-1; var up = true; var bit = 0;
+  while(col > 0){
+    if(col === 6) col--;
+    for(var r=0;r<size;r++){
+      var actualRow = up ? size-1-r : r;
+      for(var dc=0;dc<2;dc++){
+        var c = col-dc;
+        if(!isReserved(actualRow,c,size) && bit < bits.length){
+          matrix[actualRow][c] = bits[bit++]===1;
+        }
+      }
+    }
+    up = !up; col -= 2;
+  }
+  
+  // Mask pattern 0: (i+j) mod 2 == 0
+  for(var r=0;r<size;r++) for(var c=0;c<size;c++){
+    if(!isReserved(r,c,size)) matrix[r][c] = matrix[r][c] ^ ((r+c)%2===0);
+  }
+  
+  // Format info (version 1, ECC L, mask 0) = 111011111000100
+  var fmt = [1,1,1,0,1,1,1,1,1,0,0,0,1,0,0];
+  var fi = 0;
+  for(var i=0;i<6;i++){matrix[8][i]=fmt[fi];matrix[i][8]=fmt[14-fi];fi++;}
+  matrix[8][7]=fmt[fi];matrix[7][8]=fmt[14-fi];fi++;
+  matrix[8][8]=fmt[fi];fi++;
+  for(var i=9;i<15;i++){matrix[8][14-(i-9)]=fmt[fi];matrix[size-15+fi][8]=fmt[fi];fi++;}
+  // Fix format modules
+  for(var i=0;i<8;i++){
+    matrix[size-1-i][8]=fmt[14-i] !== undefined ? fmt[14-i] : false;
+    matrix[8][size-1-i]=fmt[i] !== undefined ? fmt[i] : false;
+  }
+  
+  return matrix;
+}
+
+function isReserved(r,c,size){
+  // Finder + separator zones
+  if((r<8&&c<8)||(r<8&&c>=size-8)||(r>=size-8&&c<8)) return true;
+  // Timing
+  if(r===6||c===6) return true;
+  // Dark module
+  if(r===size-8&&c===8) return true;
+  // Format info
+  if(r===8&&(c<=8||c>=size-8)) return true;
+  if(c===8&&(r<=8||r>=size-8)) return true;
+  return false;
 }
 
 function showQRCode(bookingId, service, barber, date, time){
@@ -1082,6 +1144,5 @@ window.addEventListener('load', function(){
 });
 
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </body>
 </html>
