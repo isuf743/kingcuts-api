@@ -986,8 +986,11 @@ function generateQR(text){
 }
 
 function showQRCode(bookingId, service, barber, date, time){
-  var text = 'KINGCUTS|ID:'+bookingId+'|'+service+'|'+barber+'|'+date+'|'+time;
-  setTimeout(function(){ generateQR(text); }, 300);
+  // URL e vertete qe hap faqen e konfirmimit
+  var baseUrl = 'https://kingcuts-api-production.up.railway.app/booking.html';
+  var params = '?id='+bookingId+'&srv='+encodeURIComponent(service)+'&brb='+encodeURIComponent(barber)+'&date='+encodeURIComponent(date)+'&time='+encodeURIComponent(time);
+  var url = baseUrl + params;
+  setTimeout(function(){ generateQR(url); }, 300);
 }
 
 // ── ANULIM REZERVIMI ──
