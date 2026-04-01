@@ -350,7 +350,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   <footer>
     <div><span class="footer-logo">King Cuts</span><p class="footer-tagline">Ku cdo prerje eshte art dhe cdo klient eshte mbret.</p></div>
     <div class="footer-col"><h4>Navigim</h4><a onclick="goPage('p-service')">Rezervo</a><a onclick="scrollToSection('gallery')">Galeria</a><a onclick="scrollToSection('reviews-section')">Recensione</a><a onclick="scrollToSection('map-section')">Lokacioni</a></div>
-    <div class="footer-col"><h4>Kontakt</h4><a href="tel:+355691234567">+355 69 123 4567</a><a href="/cdn-cgi/l/email-protection#046d6a626b446f6d6a63677170772a6568"><span class="__cf_email__" data-cfemail="2a43444c456a4143444d495f5e59044b46">[email&#160;protected]</span></a><a href="#">Instagram</a><a href="#">Facebook</a></div>
+    <div class="footer-col"><h4>Kontakt</h4><a href="tel:+355691234567">+355 69 123 4567</a><a href="mailto:info@kingcuts.al">info@kingcuts.al</a><a href="#">Instagram</a><a href="#">Facebook</a></div>
     <div class="footer-col"><h4>Orari</h4><p>E Hene &ndash; E Premte</p><p>09:00 &ndash; 20:00</p><p style="margin-top:.5rem">E Shtune: 09:00 &ndash; 18:00</p></div>
   </footer>
   <div class="footer-bottom"><p>&copy; 2026 King Cuts. Te gjitha te drejtat e rezervuara.</p><p>Dizajnuar me &#9829; ne Tirane</p></div>
@@ -511,10 +511,8 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 var booking = {service:'', price:'', duration:'', barber:'', barberId:0};
-// Ngarko reviews nga DB kur hapet faqja
-window.addEventListener('load', function(){ loadReviews(); });
 var userRating = 0;
 var calDate = new Date();
 var selDate = null;
@@ -852,5 +850,15 @@ function resetAll(){
   document.querySelectorAll('.price-card').forEach(function(c){c.classList.remove('selected-service');});
   document.getElementById('inp-name').value='';
   document.getElementById('inp-phone').value='';
-   document.getElementById('inp-email').value='';
-  document.querySelectorAll('.barb
+  document.getElementById('inp-email').value='';
+  document.querySelectorAll('.barber-card').forEach(function(c){c.classList.remove('selected-barber');});
+  document.querySelectorAll('.slot-btn').forEach(function(b){b.classList.remove('selected');});
+  goPage('p-home');
+}
+
+// Ngarko reviews nga DB kur hapet faqja
+window.addEventListener('load', function(){ loadReviews(); });
+
+</script>
+</body>
+</html>
