@@ -571,7 +571,12 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
     <h3>⚠ Anulo Rezervimin</h3>
     <p>Shkruaj numrin tuaj të telefonit për të konfirmuar anulimin.</p>
     <div class="cancel-form">
-      <input type="tel" id="cancel-phone" placeholder="+355 6X XXX XXXX">
+      <input type="tel" id="cancel-phone" placeholder="+355 69 123 4567" 
+             maxlength="18" oninput="formatPhone(this)"
+             style="text-align:center;font-size:1.1rem;letter-spacing:.05em">
+      <div style="font-size:.75rem;color:#9e8c70;margin-bottom:.5rem">
+        Shkruaj numrin si: <strong>+355 69 XXX XXXX</strong>
+      </div>
     </div>
     <div class="modal-btns">
       <button class="modal-btn-back" onclick="closeCancelModal()">← Kthehu</button>
@@ -945,6 +950,10 @@ function confirmCancel(){
   var phone = document.getElementById('cancel-phone').value.trim();
   var msg = document.getElementById('cancel-msg');
   if(!phone){ msg.textContent='Shkruaj numrin e telefonit!'; msg.style.display='block'; return; }
+  // Normalizoj numrin
+  phone = phone.replace(/[^0-9+]/g,'');
+  if(phone.charAt(0)==='0') phone = '+355'+phone.substring(1);
+  if(phone.indexOf('355')===0) phone = '+'+phone;
   if(!lastBookingId){ msg.textContent='Rezervimi nuk u gjet!'; msg.style.display='block'; return; }
 
   msg.style.display = 'none';

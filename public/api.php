@@ -443,15 +443,32 @@ if($action === 'cancel_booking_client' && $method === 'POST'){
     $phone = trim(isset($input['phone'])   ? $input['phone'] : '');
     if(!$id || !$phone) respond(array('error'=>'Te dhena mungojne'), 400);
     
-    // Verifiko telefoni
-    $stmt = $db->prepare("SELECT id, status FROM bookings WHERE id=? AND client_phone=?");
-    $stmt->bind_param('is', $id, $phone);
+    // Normalizoj numrin - heq te gjitha hapesirat dhe karakteret jo-numerike vec +
+    $phone_clean = preg_replace('/[^0-9+]/', '', $phone);
+    // Nese fillon me 0, zëvendëso me +355
+    if(substr($phone_clean,0,1) === '0') $phone_clean = '+355'.substr($phone_clean,1);
+    // Nese fillon me 355 pa +, shto +
+    if(substr($phone_clean,0,3) === '355') $phone_clean = '+'.$phone_clean;
+    
+    // Merr booking dhe normalizoj numrin e ruajtur gjithashtu
+    $stmt = $db->prepare("SELECT id, status, client_phone FROM bookings WHERE id=?");
+    $stmt->bind_param('i', $id);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     
-    if(!$row) respond(array('error'=>'Numri i telefonit nuk perputhet me rezervimin!'), 400);
+    if(!$row) respond(array('error'=>'Rezervimi nuk u gjet!'), 400);
     if($row['status'] === 'cancelled') respond(array('error'=>'Rezervimi eshte tashme i anuluar!'), 400);
     if($row['status'] === 'completed') respond(array('error'=>'Rezervimi eshte perfunduar dhe nuk mund te anulohet!'), 400);
+    
+    // Normalizoj numrin e ruajtur ne DB
+    $db_phone = preg_replace('/[^0-9+]/', '', $row['client_phone']);
+    if(substr($db_phone,0,1) === '0') $db_phone = '+355'.substr($db_phone,1);
+    if(substr($db_phone,0,3) === '355') $db_phone = '+'.$db_phone;
+    
+    // Krahaso numrat e normalizuar
+    if($phone_clean !== $db_phone){
+        respond(array('error'=>'Numri i telefonit nuk perputhet! Shkruaj: '.$row['client_phone']), 400);
+    }
     
     $stmt2 = $db->prepare("UPDATE bookings SET status='cancelled' WHERE id=?");
     $stmt2->bind_param('i', $id);
