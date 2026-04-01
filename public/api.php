@@ -292,5 +292,101 @@ if($action === 'send_email' && $method === 'POST'){
     else respond(array('error'=>'Email error: '.($res['message'] ?? $result)), 500);
 }
 
+
+// BARBER LOGIN
+if($action === 'barber_login' && $method === 'POST'){
+    $username = trim(isset($input['username']) ? $input['username'] : '');
+    $password = trim(isset($input['password']) ? $input['password'] : '');
+    if(!$username || !$password) respond(array('error'=>'Plotesoni fushat'), 400);
+    $db = getDB();
+    $stmt = $db->prepare("SELECT b.*, ba.password as pw FROM barber_accounts ba JOIN barbers b ON ba.barber_id=b.id WHERE ba.username=?");
+    $stmt->bind_param('s', $username);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if($row && password_verify($password, $row['pw'])){
+        respond(array('success'=>true,'barber_id'=>$row['id'],'barber_name'=>$row['name'],'token'=>base64_encode($username.':'.time())));
+    }
+    respond(array('error'=>'Username ose password i gabuar'), 401);
+}
+
+// GET BARBER ACCOUNTS
+if($action === 'get_barber_accounts' && $method === 'GET'){
+    $db = getDB();
+    $rows = $db->query("SELECT ba.id, ba.username, b.name, b.id as barber_id FROM barber_accounts ba JOIN barbers b ON ba.barber_id=b.id ORDER BY b.name ASC")->fetch_all(MYSQLI_ASSOC);
+    respond($rows);
+}
+
+// ADD/UPDATE BARBER ACCOUNT
+if($action === 'save_barber_account' && $method === 'POST'){
+    $db = getDB();
+    $barber_id = intval(isset($input['barber_id']) ? $input['barber_id'] : 0);
+    $username  = trim(isset($input['username']) ? $input['username'] : '');
+    $password  = trim(isset($input['password']) ? $input['password'] : '');
+    if(!$barber_id || !$username || !$password) respond(array('error'=>'Te dhena mungojne'), 400);
+    $hash = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $db->prepare("INSERT INTO barber_accounts (barber_id, username, password) VALUES (?,?,?) ON DUPLICATE KEY UPDATE username=?, password=?");
+    $stmt->bind_param('issss', $barber_id, $username, $hash, $username, $hash);
+    if($stmt->execute()) respond(array('success'=>true));
+    else respond(array('error'=>$db->error), 500);
+}
+
+// DELETE BARBER ACCOUNT
+if($action === 'delete_barber_account' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID mungon'), 400);
+    $db->prepare("DELETE FROM barber_accounts WHERE id=?")->bind_param('i',$id) ;
+    $stmt = $db->prepare("DELETE FROM barber_accounts WHERE id=?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+// GET REVIEWS
+if($action === 'get_reviews' && $method === 'GET'){
+    $db = getDB();
+    $approved = isset($_GET['approved']) ? intval($_GET['approved']) : -1;
+    $sql = "SELECT * FROM reviews";
+    if($approved >= 0) $sql .= " WHERE approved=$approved";
+    $sql .= " ORDER BY created_at DESC";
+    respond($db->query($sql)->fetch_all(MYSQLI_ASSOC));
+}
+
+// ADD REVIEW
+if($action === 'add_review' && $method === 'POST'){
+    $db = getDB();
+    $name    = isset($input['name'])    ? $input['name']    : '';
+    $service = isset($input['service']) ? $input['service'] : '';
+    $text    = isset($input['text'])    ? $input['text']    : '';
+    $rating  = intval(isset($input['rating']) ? $input['rating'] : 0);
+    if(!$name || !$text || !$rating) respond(array('error'=>'Te dhena mungojne'), 400);
+    $stmt = $db->prepare("INSERT INTO reviews (name, service, text, rating, approved) VALUES (?,?,?,?,1)");
+    $stmt->bind_param('sssi', $name, $service, $text, $rating);
+    if($stmt->execute()) respond(array('success'=>true, 'id'=>$db->insert_id));
+    else respond(array('error'=>$db->error), 500);
+}
+
+// APPROVE/DELETE REVIEW
+if($action === 'update_review' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    $approved = intval(isset($input['approved']) ? $input['approved'] : 1);
+    if(!$id) respond(array('error'=>'ID mungon'), 400);
+    $stmt = $db->prepare("UPDATE reviews SET approved=? WHERE id=?");
+    $stmt->bind_param('ii', $approved, $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
+if($action === 'delete_review' && $method === 'POST'){
+    $db = getDB();
+    $id = intval(isset($input['id']) ? $input['id'] : 0);
+    if(!$id) respond(array('error'=>'ID mungon'), 400);
+    $stmt = $db->prepare("DELETE FROM reviews WHERE id=?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    respond(array('success'=>true));
+}
+
 respond(array('error'=>'Action e panjohur: '.$action), 404);
 ?>

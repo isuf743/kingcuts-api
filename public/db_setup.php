@@ -85,5 +85,25 @@ if($check['c'] == 0){
         ('Gentian Mema','Grooming Specialist','6 vjet','Grooming, VIP',1)");
 }
 
+
+// Tabelat e reja - barber_accounts dhe reviews
+$conn->query("CREATE TABLE IF NOT EXISTS barber_accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    barber_id INT NOT NULL UNIQUE,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
+$conn->query("CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    service VARCHAR(100),
+    text TEXT NOT NULL,
+    rating INT DEFAULT 5,
+    approved TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
 echo json_encode(array('success'=>true, 'message'=>'Database u konfigurua! Hyr si admin/admin123'));
 ?>

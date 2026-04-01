@@ -426,6 +426,8 @@ function showSection(name){
   const sec = document.getElementById('sec-'+name)
   if(sec) sec.classList.add('active')
   if(event && event.currentTarget) event.currentTarget.classList.add('active')
+  if(name==='reviews') loadReviews()
+  if(name==='accounts') loadAccounts()
 }
 
 // ── API ──
@@ -828,6 +830,82 @@ function fmtPhone(input){
 document.getElementById('adm-pass').addEventListener('keydown',function(e){
   if(e.key==='Enter') doAdminLogin()
 })
+
+// ── REVIEWS ──
+async function loadReviews(){
+  const rows = await api('get_reviews', null, 'GET')
+  const div = document.getElementById('reviews-table')
+  if(!rows || !rows.length){ div.innerHTML='<div style="padding:2rem;text-align:center;color:#999">Nuk ka reviews ende.</div>'; return }
+  let html = '<table><thead><tr><th>Emri</th><th>Sherbimi</th><th>Review</th><th>Vleresimi</th><th>Data</th><th>Veprime</th></tr></thead><tbody>'
+  rows.forEach(r=>{
+    const stars = '★'.repeat(r.rating)+'☆'.repeat(5-r.rating)
+    html += `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.service||'—'}</td>
+      <td style="max-width:250px">${r.text}</td>
+      <td style="color:#c9a84c">${stars}</td>
+      <td>${r.created_at ? r.created_at.split(' ')[0] : '—'}</td>
+      <td>
+        <button class="action-btn red" onclick="deleteReview(${r.id})">🗑 Fshi</button>
+      </td>
+    </tr>`
+  })
+  html += '</tbody></table>'
+  div.innerHTML = html
+}
+
+async function deleteReview(id){
+  if(!confirm('Fshi këtë review?')) return
+  await api('delete_review', {id})
+  loadReviews()
+}
+
+// ── ACCOUNTS ──
+async function loadAccounts(){
+  // Ngarko berberat per select
+  const barbers = await api('get_barbers', null, 'GET')
+  const sel = document.getElementById('acc-barber')
+  if(sel && barbers){
+    sel.innerHTML = barbers.map(b=>`<option value="${b.id}">${b.name}</option>`).join('')
+  }
+  // Ngarko llogarite ekzistuese
+  const rows = await api('get_barber_accounts', null, 'GET')
+  const div = document.getElementById('accounts-table')
+  if(!rows || !rows.length){ div.innerHTML='<div style="padding:2rem;text-align:center;color:#999">Nuk ka llogari ende. Shto me poshte.</div>'; return }
+  let html = '<table><thead><tr><th>Berberi</th><th>Username</th><th>Veprime</th></tr></thead><tbody>'
+  rows.forEach(r=>{
+    html += `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td><code>${r.username}</code></td>
+      <td><button class="action-btn red" onclick="deleteAccount(${r.id})">🗑 Fshi</button></td>
+    </tr>`
+  })
+  html += '</tbody></table>'
+  div.innerHTML = html
+}
+
+async function saveAccount(){
+  const barber_id = document.getElementById('acc-barber').value
+  const username = document.getElementById('acc-username').value.trim()
+  const password = document.getElementById('acc-password').value.trim()
+  if(!username || !password){ alert('Plotesoni username dhe password!'); return }
+  if(password.length < 6){ alert('Password minimum 6 karaktere!'); return }
+  const res = await api('save_barber_account', {barber_id, username, password})
+  if(res.success){
+    document.getElementById('acc-username').value=''
+    document.getElementById('acc-password').value=''
+    loadAccounts()
+    alert('✅ Llogaria u ruajt!')
+  } else {
+    alert('Gabim: '+(res.error||'E panjohur'))
+  }
+}
+
+async function deleteAccount(id){
+  if(!confirm('Fshi këtë llogari?')) return
+  await api('delete_barber_account', {id})
+  loadAccounts()
+}
 </script>
 </body>
 </html>
