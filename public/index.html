@@ -315,6 +315,33 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   text-decoration:none;transition:background .2s;
 }
 .qr-download:hover{background:#2e2518;}
+
+/* CALENDAR BUTTONS */
+.cal-buttons{
+  display:flex;gap:.8rem;justify-content:center;
+  flex-wrap:wrap;margin:1.2rem 0;
+}
+.cal-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.7rem 1.4rem;border-radius:4px;
+  font-family:'Outfit',sans-serif;font-size:.78rem;
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  text-decoration:none;cursor:pointer;transition:all .25s;border:none;
+}
+.cal-btn-google{
+  background:#fff;color:#444;
+  border:2px solid #e0e0e0;
+}
+.cal-btn-google:hover{background:#f5f5f5;border-color:#bbb;transform:translateY(-1px);}
+.cal-btn-apple{
+  background:#1a1208;color:#c9a84c;
+  border:2px solid #2e2518;
+}
+.cal-btn-apple:hover{background:#2e2518;transform:translateY(-1px);}
+.cal-section-label{
+  font-size:.72rem;color:#9e8c70;text-transform:uppercase;
+  letter-spacing:.12em;margin-bottom:.5rem;text-align:center;
+}
 </style>
 </head>
 <body>
@@ -589,6 +616,19 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
         <br>
         <a class="qr-download" id="qr-download" download="rezervimi-kingcuts.png" 
            style="opacity:.5;pointer-events:none" target="_blank">⬇ Shkarko QR</a>
+      </div>
+      <div style="margin:1.2rem 0">
+        <div class="cal-section-label">📅 Shto në Kalendar</div>
+        <div class="cal-buttons">
+          <a class="cal-btn cal-btn-google" id="cal-google" href="#" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google Calendar
+          </a>
+          <a class="cal-btn cal-btn-apple" id="cal-apple" href="#" download="rezervimi-kingcuts.ics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#c9a84c"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Apple / Outlook
+          </a>
+        </div>
       </div>
       <button class="hero-cta" onclick="resetAll()">&larr; Kthehu ne Faqen Kryesore</button>
       <button class="cancel-btn" onclick="openCancelModal()">✕ Anulo Rezervimin</button>
@@ -900,8 +940,10 @@ function submitBooking(){
       .catch(function(e){console.log('Email error:',e);});
   }
   goPage('p-success');
-  // Gjenero QR pas rezervimit
+  // Gjenero QR
   showQRCode(lastBookingId, booking.service, booking.barber, selDateLabel, selSlot);
+  // Gjenero linqet e kalendarit
+  generateCalendarLinks(booking.service, booking.barber, selDateLabel, selSlot, booking.price);
 }
 
 function setRating(val){
@@ -966,39 +1008,83 @@ function resetAll(){
   goPage('p-home');
 }
 
-// ── QR CODE GENERATOR (qr-server.com - funksionon 100%) ──
+// ── KALENDAR ──
+function generateCalendarLinks(service, barber, dateStr, timeStr, price){
+  // Konverto daten dhe oren
+  // dateStr: "1 Prill 2026", timeStr: "10:00"
+  var months = {'Janar':'01','Shkurt':'02','Mars':'03','Prill':'04','Maj':'05',
+    'Qershor':'06','Korrik':'07','Gusht':'08','Shtator':'09','Tetor':'10','Nentor':'11','Dhjetor':'12'};
+  
+  var parts = dateStr.split(' ');
+  var day = parts[0].length===1 ? '0'+parts[0] : parts[0];
+  var month = months[parts[1]] || '01';
+  var year = parts[2] || new Date().getFullYear();
+  var timeParts = timeStr.split(':');
+  var hour = timeParts[0] || '10';
+  var min = timeParts[1] || '00';
+  
+  var startDT = year+month+day+'T'+hour+min+'00';
+  // Duration: 30 minuta
+  var endHour = String(parseInt(hour)+(parseInt(min)+30>=60?1:0)).padStart(2,'0');
+  var endMin = String((parseInt(min)+30)%60).padStart(2,'0');
+  var endDT = year+month+day+'T'+endHour+endMin+'00';
+  
+  var title = 'King Cuts - '+service+' me '+barber;
+  var desc = 'Rezervimi juaj ne King Cuts\nSherbimi: '+service+'\nBerberi: '+barber+'\nCmimi: '+price+'\nAdresa: Tirane, Shqiperi';
+  var location = 'King Cuts, Tirane';
+  
+  // Google Calendar URL
+  var googleUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    '&text='+encodeURIComponent(title) +
+    '&dates='+startDT+'/'+endDT +
+    '&details='+encodeURIComponent(desc) +
+    '&location='+encodeURIComponent(location) +
+    '&sf=true&output=xml';
+  
+  // ICS file per Apple/Outlook
+  var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//King Cuts//Rezervim//SQ\r\n' +
+    'BEGIN:VEVENT\r\n' +
+    'DTSTART:'+startDT+'\r\n' +
+    'DTEND:'+endDT+'\r\n' +
+    'SUMMARY:'+title+'\r\n' +
+    'DESCRIPTION:'+desc.replace(/\n/g,'\\n')+'\r\n' +
+    'LOCATION:'+location+'\r\n' +
+    'STATUS:CONFIRMED\r\n' +
+    'END:VEVENT\r\n' +
+    'END:VCALENDAR';
+  
+  var icsBlob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  var icsUrl = URL.createObjectURL(icsBlob);
+  
+  var gBtn = document.getElementById('cal-google');
+  var aBtn = document.getElementById('cal-apple');
+  if(gBtn) gBtn.href = googleUrl;
+  if(aBtn){ aBtn.href = icsUrl; aBtn.download = 'rezervimi-kingcuts.ics'; }
+}
+
+// ── QR CODE ──
 function generateQR(text){
   var img = document.getElementById('qr-img');
   var dl = document.getElementById('qr-download');
   if(!img) return;
-  
-  var url = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(text) + '&color=1a1208&bgcolor=ffffff&margin=10&format=png';
-  
+  var url = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(text)+'&color=1a1208&bgcolor=ffffff&margin=10&format=png';
   img.src = url;
   img.style.display = 'block';
-  
-  if(dl){
-    dl.href = url;
-    dl.style.opacity = '1';
-    dl.style.pointerEvents = 'auto';
-    dl.target = '_blank'; // Hap ne tab te ri si fallback
-  }
+  if(dl){ dl.href=url; dl.style.opacity='1'; dl.style.pointerEvents='auto'; dl.target='_blank'; }
 }
 
 function showQRCode(bookingId, service, barber, date, time){
-  // URL e vertete qe hap faqen e konfirmimit
   var baseUrl = 'https://kingcuts-api-production.up.railway.app/booking.html';
   var params = '?id='+bookingId+'&srv='+encodeURIComponent(service)+'&brb='+encodeURIComponent(barber)+'&date='+encodeURIComponent(date)+'&time='+encodeURIComponent(time);
-  var url = baseUrl + params;
-  setTimeout(function(){ generateQR(url); }, 300);
+  setTimeout(function(){ generateQR(baseUrl+params); }, 300);
 }
 
 // ── ANULIM REZERVIMI ──
 var lastBookingId = 0;
 
 function openCancelModal(){
-  document.getElementById('cancel-phone').value = '';
-  document.getElementById('cancel-msg').style.display = 'none';
+  document.getElementById('cancel-phone').value='';
+  document.getElementById('cancel-msg').style.display='none';
   document.getElementById('cancel-modal').classList.add('open');
 }
 
@@ -1007,35 +1093,29 @@ function closeCancelModal(){
 }
 
 function confirmCancel(){
-  var phone = document.getElementById('cancel-phone').value.trim();
-  var msg = document.getElementById('cancel-msg');
-  if(!phone){ msg.textContent='Shkruaj numrin e telefonit!'; msg.style.display='block'; return; }
-  phone = phone.replace(/[^0-9+]/g,'');
-  if(phone.charAt(0)==='0') phone = '+355'+phone.substring(1);
-  if(phone.indexOf('355')===0) phone = '+'+phone;
-  if(!lastBookingId){ msg.textContent='Rezervimi nuk u gjet!'; msg.style.display='block'; return; }
-  msg.style.display = 'none';
+  var phone=document.getElementById('cancel-phone').value.trim();
+  var msg=document.getElementById('cancel-msg');
+  if(!phone){msg.textContent='Shkruaj numrin e telefonit!';msg.style.display='block';return;}
+  phone=phone.replace(/[^0-9+]/g,'');
+  if(phone.charAt(0)==='0') phone='+355'+phone.substring(1);
+  if(phone.indexOf('355')===0) phone='+'+phone;
+  if(!lastBookingId){msg.textContent='Rezervimi nuk u gjet!';msg.style.display='block';return;}
+  msg.style.display='none';
   fetch('https://kingcuts-api-production.up.railway.app/api.php?action=cancel_booking_client',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({id:lastBookingId, phone:phone})
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:lastBookingId,phone:phone})
   }).then(function(r){return r.json();})
   .then(function(res){
-    if(res.success){
-      closeCancelModal();
-      showToast('✓ Rezervimi u anulua me sukses!');
-      setTimeout(function(){ resetAll(); }, 2000);
-    } else {
-      msg.textContent = res.error || 'Numri i telefonit nuk përputhet!';
-      msg.style.display = 'block';
-    }
-  }).catch(function(){ msg.textContent='Gabim lidhje!'; msg.style.display='block'; });
+    if(res.success){closeCancelModal();showToast('✓ Rezervimi u anulua!');setTimeout(function(){resetAll();},2000);}
+    else{msg.textContent=res.error||'Numri nuk përputhet!';msg.style.display='block';}
+  }).catch(function(){msg.textContent='Gabim lidhje!';msg.style.display='block';});
 }
 
 // Ngarko reviews dhe fshih loading screen
 window.addEventListener('load', function(){
   loadReviews();
   setTimeout(function(){
-    var ls = document.getElementById('loading-screen');
+    var ls=document.getElementById('loading-screen');
     if(ls) ls.classList.add('hidden');
   }, 1800);
 });
