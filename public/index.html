@@ -810,8 +810,12 @@ function skipIntro(){
   var intro = document.getElementById('intro-screen');
   intro.style.transition = 'opacity .8s ease';
   intro.style.opacity = '0';
-  setTimeout(function(){ intro.classList.add('hidden'); }, 800);
-  loadReviews();
+  setTimeout(function(){
+    intro.classList.add('hidden');
+    // Shfaq faqen kryesore
+    goHome();
+    loadReviews();
+  }, 800);
 }
 
 function startIntro(){
