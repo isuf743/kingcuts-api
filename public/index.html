@@ -247,26 +247,50 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   .success-details{min-width:unset;width:100%}
 }
 
-/* LOADING SCREEN */
-#loading-screen{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#1a1208;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:99999;transition:opacity .6s ease, visibility .6s ease;
+/* INTRO 3D */
+#intro-screen{
+  position:fixed;inset:0;z-index:99999;background:#0a0704;
+  overflow:hidden;cursor:none;
 }
-#loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
-.loading-logo{
-  font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:700;
-  color:#c9a84c;letter-spacing:.2em;text-align:center;
-  animation:logoPulse 1.5s ease-in-out infinite;
+#intro-screen.hidden{display:none;}
+#intro-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.intro-overlay{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, transparent 30%, rgba(10,7,4,.8) 100%);
+  pointer-events:none;
 }
-.loading-scissors{font-size:2.5rem;margin-bottom:1rem;animation:spin 2s linear infinite;}
-.loading-tagline{color:rgba(255,240,210,.5);font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;margin-top:.5rem;}
-.loading-bar{width:200px;height:2px;background:rgba(201,168,76,.2);border-radius:2px;margin-top:2rem;overflow:hidden;}
-.loading-bar-fill{height:100%;background:linear-gradient(90deg,#c9a84c,#F5C842);border-radius:2px;animation:loadFill 1.8s ease forwards;}
-@keyframes logoPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@keyframes loadFill{0%{width:0%;}100%{width:100%;}}
+.intro-logo{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;opacity:0;transition:opacity 1.5s ease;
+  pointer-events:none;
+}
+.intro-logo.show{opacity:1;}
+.intro-logo-text{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);
+  font-weight:700;color:#c9a84c;letter-spacing:.3em;
+  text-shadow:0 0 60px rgba(201,168,76,.6),0 0 120px rgba(201,168,76,.3);
+  display:block;
+}
+.intro-logo-sub{
+  font-family:'Outfit',sans-serif;font-size:.75rem;color:rgba(255,240,210,.5);
+  letter-spacing:.4em;text-transform:uppercase;margin-top:.8rem;display:block;
+}
+.intro-skip{
+  position:absolute;bottom:2rem;right:2rem;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.4);padding:.5rem 1.2rem;border-radius:20px;
+  font-family:'Outfit',sans-serif;font-size:.72rem;letter-spacing:.1em;
+  cursor:pointer;transition:all .3s;text-transform:uppercase;
+}
+.intro-skip:hover{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+.intro-enter{
+  position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);
+  color:rgba(201,168,76,.6);font-family:'Outfit',sans-serif;font-size:.75rem;
+  letter-spacing:.25em;text-transform:uppercase;opacity:0;
+  animation:blink 2s ease-in-out infinite;
+}
+.intro-enter.show{opacity:1;}
+@keyframes blink{0%,100%{opacity:.3;}50%{opacity:.8;}}
 
 /* ANULIM */
 .cancel-btn{
@@ -343,13 +367,18 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   letter-spacing:.12em;margin-bottom:.5rem;text-align:center;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-<div id="loading-screen">
-  <div class="loading-scissors">✂</div>
-  <div class="loading-logo">KING CUTS</div>
-  <div class="loading-tagline">Salloni Premium</div>
-  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+<div id="intro-screen">
+  <canvas id="intro-canvas"></canvas>
+  <div class="intro-overlay"></div>
+  <div class="intro-logo" id="intro-logo">
+    <span class="intro-logo-text">KING CUTS</span>
+    <span class="intro-logo-sub">Salloni Premium · Tiranë</span>
+  </div>
+  <div class="intro-enter" id="intro-enter">Hyr në Sallon ↓</div>
+  <button class="intro-skip" onclick="skipIntro()">Kalo →</button>
 </div>
 
 
@@ -1008,94 +1037,304 @@ function resetAll(){
   goPage('p-home');
 }
 
-// ── KALENDAR ──
+// ── INTRO 3D ──
+function skipIntro(){
+  var intro = document.getElementById('intro-screen');
+  if(intro){ intro.style.opacity='0'; intro.style.transition='opacity .8s'; setTimeout(function(){ intro.classList.add('hidden'); },800); }
+  loadReviews();
+}
+
+function startIntro(){
+  var canvas = document.getElementById('intro-canvas');
+  if(!canvas || typeof THREE === 'undefined'){ skipIntro(); return; }
+  
+  var W = window.innerWidth, H = window.innerHeight;
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:false});
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ReinhardToneMapping;
+  renderer.toneMappingExposure = 0.8;
+  
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0704);
+  scene.fog = new THREE.FogExp2(0x0a0704, 0.08);
+  
+  var camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 100);
+  camera.position.set(0, 1.6, 12); // Jashtë sallonit
+  camera.lookAt(0, 1.6, 0);
+  
+  // ── MATERIALET ──
+  var woodMat = new THREE.MeshStandardMaterial({color:0x3d2410, roughness:0.8, metalness:0.1});
+  var mirrorMat = new THREE.MeshStandardMaterial({color:0x888888, roughness:0.1, metalness:0.9, envMapIntensity:1});
+  var wallMat = new THREE.MeshStandardMaterial({color:0x1a1208, roughness:0.9, metalness:0.0});
+  var marbleMat = new THREE.MeshStandardMaterial({color:0x2a2015, roughness:0.3, metalness:0.2});
+  var goldMat = new THREE.MeshStandardMaterial({color:0xc9a84c, roughness:0.2, metalness:0.9});
+  var chairMat = new THREE.MeshStandardMaterial({color:0x1a0a05, roughness:0.7, metalness:0.3});
+  var leatherMat = new THREE.MeshStandardMaterial({color:0x8b1a1a, roughness:0.8, metalness:0.1});
+  
+  // ── DHOMA ──
+  // Dyshemeja
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(12,20), marbleMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  
+  // Muret
+  var wallBack = new THREE.Mesh(new THREE.PlaneGeometry(12,5), wallMat);
+  wallBack.position.set(0,2.5,-8);
+  wallBack.receiveShadow = true;
+  scene.add(wallBack);
+  
+  var wallLeft = new THREE.Mesh(new THREE.PlaneGeometry(20,5), wallMat);
+  wallLeft.position.set(-6,2.5,2);
+  wallLeft.rotation.y = Math.PI/2;
+  wallLeft.receiveShadow = true;
+  scene.add(wallLeft);
+  
+  var wallRight = new THREE.Mesh(new THREE.PlaneGeometry(20,5), wallMat);
+  wallRight.position.set(6,2.5,2);
+  wallRight.rotation.y = -Math.PI/2;
+  wallRight.receiveShadow = true;
+  scene.add(wallRight);
+  
+  // Tavani
+  var ceil = new THREE.Mesh(new THREE.PlaneGeometry(12,20), wallMat);
+  ceil.rotation.x = Math.PI/2;
+  ceil.position.set(0,5,2);
+  scene.add(ceil);
+  
+  // ── KARRIGE BERBERI (2 cope) ──
+  function createChair(x){
+    var g = new THREE.Group();
+    // Baza
+    var base = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.35,0.1,8), goldMat);
+    base.position.y = 0.05;
+    g.add(base);
+    // Shtylla
+    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.8,8), goldMat);
+    pole.position.y = 0.5;
+    g.add(pole);
+    // Ndenjëse
+    var seat = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.1,0.7), leatherMat);
+    seat.position.y = 0.95;
+    g.add(seat);
+    // Shpina
+    var back = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.8,0.08), leatherMat);
+    back.position.set(0,1.4,-0.3);
+    back.rotation.x = -0.15;
+    g.add(back);
+    // Krahët
+    var armL = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.06,0.5), chairMat);
+    armL.position.set(-0.3,1.15,0);
+    g.add(armL);
+    var armR = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.06,0.5), chairMat);
+    armR.position.set(0.3,1.15,0);
+    g.add(armR);
+    
+    g.position.set(x, 0, -3);
+    g.castShadow = true;
+    scene.add(g);
+    return g;
+  }
+  createChair(-2.5);
+  createChair(2.5);
+  
+  // ── PASQYRAT ──
+  function createMirror(x){
+    var g = new THREE.Group();
+    var frame = new THREE.Mesh(new THREE.BoxGeometry(1.4,2.2,0.08), goldMat);
+    g.add(frame);
+    var mirror = new THREE.Mesh(new THREE.PlaneGeometry(1.2,2.0), mirrorMat);
+    mirror.position.z = 0.05;
+    g.add(mirror);
+    g.position.set(x, 2.0, -7.8);
+    scene.add(g);
+    return g;
+  }
+  createMirror(-2.5);
+  createMirror(2.5);
+  
+  // ── COUNTER (tavolina pritjes) ──
+  var counter = new THREE.Mesh(new THREE.BoxGeometry(3,1.0,0.6), woodMat);
+  counter.position.set(0,0.5,-6.5);
+  counter.castShadow = true;
+  scene.add(counter);
+  
+  var counterTop = new THREE.Mesh(new THREE.BoxGeometry(3.1,0.06,0.7), marbleMat);
+  counterTop.position.set(0,1.03,-6.5);
+  scene.add(counterTop);
+  
+  // ── DRITA KRYESORE ──
+  var ambient = new THREE.AmbientLight(0x2a1a08, 0.8);
+  scene.add(ambient);
+  
+  // Spot lights mbi karriget
+  function addSpot(x, z, color){
+    var spot = new THREE.SpotLight(color, 3, 8, Math.PI/6, 0.5, 1.5);
+    spot.position.set(x, 4.8, z);
+    spot.target.position.set(x, 0, z);
+    spot.castShadow = true;
+    scene.add(spot);
+    scene.add(spot.target);
+    
+    // Llamba vizuale
+    var bulb = new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8), new THREE.MeshStandardMaterial({color:color,emissive:color,emissiveIntensity:3}));
+    bulb.position.copy(spot.position);
+    scene.add(bulb);
+  }
+  addSpot(-2.5, -3, 0xfff0d0); // Mbi karriget
+  addSpot(2.5, -3, 0xfff0d0);
+  addSpot(0, -6.5, 0xc9a84c);  // Mbi counter - gold
+  
+  // Drita e pasqyrës - ngjyrë e verdhë e ngrohtë
+  var mirrorLight = new THREE.RectAreaLight(0xffcc66, 1.5, 2, 1.5);
+  mirrorLight.position.set(0, 2, -7.5);
+  mirrorLight.lookAt(0, 2, 0);
+  scene.add(mirrorLight);
+  
+  // Particle dust (pluhur në ajër)
+  var particleCount = 80;
+  var positions = new Float32Array(particleCount * 3);
+  for(var i=0; i<particleCount; i++){
+    positions[i*3] = (Math.random()-0.5)*10;
+    positions[i*3+1] = Math.random()*4+0.5;
+    positions[i*3+2] = (Math.random()-0.5)*15-2;
+  }
+  var partGeo = new THREE.BufferGeometry();
+  partGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  var partMat = new THREE.PointsMaterial({color:0xc9a84c, size:0.03, transparent:true, opacity:0.4});
+  var particles = new THREE.Points(partGeo, partMat);
+  scene.add(particles);
+  
+  // ── ANIMACIONI I KAMERËS ──
+  var clock = new THREE.Clock();
+  var phase = 0; // 0=hyrje, 1=logo, 2=dalje
+  var logoShown = false;
+  var enterShown = false;
+  var introDone = false;
+  
+  // Target positions
+  var camStart = {x:0, y:1.6, z:12};
+  var camEnd   = {x:0, y:1.6, z:1};
+  
+  function easeInOutCubic(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+  
+  function animate(){
+    if(introDone) return;
+    requestAnimationFrame(animate);
+    
+    var t = clock.getElapsedTime();
+    
+    // Particles float
+    var pos = particles.geometry.attributes.position.array;
+    for(var i=0; i<particleCount; i++){
+      pos[i*3+1] += 0.002;
+      if(pos[i*3+1] > 4.5) pos[i*3+1] = 0.5;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+    
+    // Kamera lëviz
+    var duration = 4.5; // sekonda per te hyre
+    var progress = Math.min(t / duration, 1);
+    var eased = easeInOutCubic(progress);
+    
+    camera.position.x = camStart.x + (camEnd.x - camStart.x) * eased + Math.sin(t*0.3)*0.1;
+    camera.position.y = camStart.y + Math.sin(t*0.2)*0.05;
+    camera.position.z = camStart.z + (camEnd.z - camStart.z) * eased;
+    camera.lookAt(0, 1.6, -3);
+    
+    // Shfaq logon në mes
+    if(t > 2.5 && !logoShown){
+      logoShown = true;
+      document.getElementById('intro-logo').classList.add('show');
+    }
+    
+    // Shfaq "Hyr në Sallon"
+    if(t > 4.0 && !enterShown){
+      enterShown = true;
+      document.getElementById('intro-enter').classList.add('show');
+    }
+    
+    // Auto-dalje pas 6 sekondash
+    if(t > 6.5 && !introDone){
+      introDone = true;
+      var intro = document.getElementById('intro-screen');
+      intro.style.transition = 'opacity 1.2s ease';
+      intro.style.opacity = '0';
+      setTimeout(function(){ intro.classList.add('hidden'); loadReviews(); }, 1200);
+      renderer.dispose();
+    }
+    
+    renderer.render(scene, camera);
+  }
+  
+  // Resize
+  window.addEventListener('resize', function(){
+    W = window.innerWidth; H = window.innerHeight;
+    camera.aspect = W/H;
+    camera.updateProjectionMatrix();
+    renderer.setSize(W,H);
+  });
+  
+  animate();
+}
+
+// ── CALENDAR ──
 function generateCalendarLinks(service, barber, dateStr, timeStr, price){
-  // Konverto daten dhe oren
-  // dateStr: "1 Prill 2026", timeStr: "10:00"
-  var months = {'Janar':'01','Shkurt':'02','Mars':'03','Prill':'04','Maj':'05',
-    'Qershor':'06','Korrik':'07','Gusht':'08','Shtator':'09','Tetor':'10','Nentor':'11','Dhjetor':'12'};
-  
-  var parts = dateStr.split(' ');
-  var day = parts[0].length===1 ? '0'+parts[0] : parts[0];
-  var month = months[parts[1]] || '01';
-  var year = parts[2] || new Date().getFullYear();
-  var timeParts = timeStr.split(':');
-  var hour = timeParts[0] || '10';
-  var min = timeParts[1] || '00';
-  
-  var startDT = year+month+day+'T'+hour+min+'00';
-  // Duration: 30 minuta
-  var endHour = String(parseInt(hour)+(parseInt(min)+30>=60?1:0)).padStart(2,'0');
-  var endMin = String((parseInt(min)+30)%60).padStart(2,'0');
-  var endDT = year+month+day+'T'+endHour+endMin+'00';
-  
-  var title = 'King Cuts - '+service+' me '+barber;
-  var desc = 'Rezervimi juaj ne King Cuts\nSherbimi: '+service+'\nBerberi: '+barber+'\nCmimi: '+price+'\nAdresa: Tirane, Shqiperi';
-  var location = 'King Cuts, Tirane';
-  
-  // Google Calendar URL
-  var googleUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-    '&text='+encodeURIComponent(title) +
-    '&dates='+startDT+'/'+endDT +
-    '&details='+encodeURIComponent(desc) +
-    '&location='+encodeURIComponent(location) +
-    '&sf=true&output=xml';
-  
-  // ICS file per Apple/Outlook
-  var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//King Cuts//Rezervim//SQ\r\n' +
-    'BEGIN:VEVENT\r\n' +
-    'DTSTART:'+startDT+'\r\n' +
-    'DTEND:'+endDT+'\r\n' +
-    'SUMMARY:'+title+'\r\n' +
-    'DESCRIPTION:'+desc.replace(/\n/g,'\\n')+'\r\n' +
-    'LOCATION:'+location+'\r\n' +
-    'STATUS:CONFIRMED\r\n' +
-    'END:VEVENT\r\n' +
-    'END:VCALENDAR';
-  
-  var icsBlob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
-  var icsUrl = URL.createObjectURL(icsBlob);
-  
-  var gBtn = document.getElementById('cal-google');
-  var aBtn = document.getElementById('cal-apple');
-  if(gBtn) gBtn.href = googleUrl;
-  if(aBtn){ aBtn.href = icsUrl; aBtn.download = 'rezervimi-kingcuts.ics'; }
+  var months={'Janar':'01','Shkurt':'02','Mars':'03','Prill':'04','Maj':'05','Qershor':'06','Korrik':'07','Gusht':'08','Shtator':'09','Tetor':'10','Nentor':'11','Dhjetor':'12'};
+  var parts=dateStr.split(' ');
+  var day=parts[0].length===1?'0'+parts[0]:parts[0];
+  var month=months[parts[1]]||'01';
+  var year=parts[2]||new Date().getFullYear();
+  var timeParts=timeStr.split(':');
+  var hour=timeParts[0]||'10';
+  var min=timeParts[1]||'00';
+  var startDT=year+month+day+'T'+hour+min+'00';
+  var endHour=String(parseInt(hour)+(parseInt(min)+30>=60?1:0)).padStart(2,'0');
+  var endMin=String((parseInt(min)+30)%60).padStart(2,'0');
+  var endDT=year+month+day+'T'+endHour+endMin+'00';
+  var title='King Cuts - '+service+' me '+barber;
+  var desc='Rezervimi juaj ne King Cuts\nSherbimi: '+service+'\nBerberi: '+barber+'\nCmimi: '+price;
+  var googleUrl='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&dates='+startDT+'/'+endDT+'&details='+encodeURIComponent(desc)+'&location='+encodeURIComponent('King Cuts, Tirane')+'&sf=true&output=xml';
+  var ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART:'+startDT+'\r\nDTEND:'+endDT+'\r\nSUMMARY:'+title+'\r\nDESCRIPTION:'+desc.replace(/\n/g,'\\n')+'\r\nLOCATION:King Cuts, Tirane\r\nSTATUS:CONFIRMED\r\nEND:VEVENT\r\nEND:VCALENDAR';
+  var icsBlob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  var icsUrl=URL.createObjectURL(icsBlob);
+  var gBtn=document.getElementById('cal-google');
+  var aBtn=document.getElementById('cal-apple');
+  if(gBtn) gBtn.href=googleUrl;
+  if(aBtn){aBtn.href=icsUrl;aBtn.download='rezervimi-kingcuts.ics';}
 }
 
 // ── QR CODE ──
 function generateQR(text){
-  var img = document.getElementById('qr-img');
-  var dl = document.getElementById('qr-download');
+  var img=document.getElementById('qr-img');
+  var dl=document.getElementById('qr-download');
   if(!img) return;
-  var url = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(text)+'&color=1a1208&bgcolor=ffffff&margin=10&format=png';
-  img.src = url;
-  img.style.display = 'block';
-  if(dl){ dl.href=url; dl.style.opacity='1'; dl.style.pointerEvents='auto'; dl.target='_blank'; }
+  var url='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(text)+'&color=1a1208&bgcolor=ffffff&margin=10&format=png';
+  img.src=url; img.style.display='block';
+  if(dl){dl.href=url;dl.style.opacity='1';dl.style.pointerEvents='auto';dl.target='_blank';}
 }
 
 function showQRCode(bookingId, service, barber, date, time){
-  var baseUrl = 'https://kingcuts-api-production.up.railway.app/booking.html';
-  var params = '?id='+bookingId+'&srv='+encodeURIComponent(service)+'&brb='+encodeURIComponent(barber)+'&date='+encodeURIComponent(date)+'&time='+encodeURIComponent(time);
-  setTimeout(function(){ generateQR(baseUrl+params); }, 300);
+  var baseUrl='https://kingcuts-api-production.up.railway.app/booking.html';
+  var params='?id='+bookingId+'&srv='+encodeURIComponent(service)+'&brb='+encodeURIComponent(barber)+'&date='+encodeURIComponent(date)+'&time='+encodeURIComponent(time);
+  setTimeout(function(){ generateQR(baseUrl+params); },300);
 }
 
-// ── ANULIM REZERVIMI ──
-var lastBookingId = 0;
-
+// ── ANULIM ──
+var lastBookingId=0;
 function openCancelModal(){
   document.getElementById('cancel-phone').value='';
   document.getElementById('cancel-msg').style.display='none';
   document.getElementById('cancel-modal').classList.add('open');
 }
-
-function closeCancelModal(){
-  document.getElementById('cancel-modal').classList.remove('open');
-}
-
+function closeCancelModal(){ document.getElementById('cancel-modal').classList.remove('open'); }
 function confirmCancel(){
   var phone=document.getElementById('cancel-phone').value.trim();
   var msg=document.getElementById('cancel-msg');
-  if(!phone){msg.textContent='Shkruaj numrin e telefonit!';msg.style.display='block';return;}
+  if(!phone){msg.textContent='Shkruaj numrin!';msg.style.display='block';return;}
   phone=phone.replace(/[^0-9+]/g,'');
   if(phone.charAt(0)==='0') phone='+355'+phone.substring(1);
   if(phone.indexOf('355')===0) phone='+'+phone;
@@ -1111,13 +1350,19 @@ function confirmCancel(){
   }).catch(function(){msg.textContent='Gabim lidhje!';msg.style.display='block';});
 }
 
-// Ngarko reviews dhe fshih loading screen
+// ── INIT ──
 window.addEventListener('load', function(){
-  loadReviews();
-  setTimeout(function(){
-    var ls=document.getElementById('loading-screen');
-    if(ls) ls.classList.add('hidden');
-  }, 1800);
+  // Fillo intro 3D - prit Three.js
+  if(typeof THREE !== 'undefined'){
+    startIntro();
+  } else {
+    skipIntro();
+  }
+  // Skip me klikim
+  document.getElementById('intro-screen').addEventListener('click', function(e){
+    if(e.target.classList.contains('intro-skip')) return;
+    skipIntro();
+  });
 });
 
 </script>
