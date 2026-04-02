@@ -250,9 +250,10 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 /* INTRO CINEMATIC */
 #intro-screen{
   position:fixed;inset:0;z-index:99999;background:#0a0704;
-  overflow:hidden;
+  overflow:hidden;transition:opacity .8s ease;
 }
-#intro-screen.hidden{display:none;}
+#intro-screen.fade-out{opacity:0;pointer-events:none;}
+#intro-screen.hidden{display:none !important;pointer-events:none !important;z-index:-1 !important;}
 
 .intro-slide{
   position:absolute;inset:0;
@@ -1097,30 +1098,43 @@ function skipIntro(){
   if(introDone) return;
   introDone = true;
   clearTimeout(introTimer);
+  
   var intro = document.getElementById('intro-screen');
-  
-  intro.style.transition = 'opacity .8s ease';
-  intro.style.opacity = '0';
-  
-  // Aktivizo p-home menjehere - mos prit animation
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   var home = document.getElementById('p-home');
-  if(home) home.style.display = 'block';
   
-  setTimeout(function(){
-    intro.style.display = 'none';
-    intro.classList.add('hidden');
-    if(home) home.classList.add('active');
-    // Aktivizo animations
-    if(window.innerWidth<=900){
-      document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('visible');});
-    } else {
-      var ob=new IntersectionObserver(function(entries){
-        entries.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});
-      },{threshold:0.08});
-      document.querySelectorAll('.reveal').forEach(function(el){ob.observe(el);});
-    }
-  }, 800);
+  // Fshih intro menjehere - zero delay
+  intro.classList.add('hidden');
+  intro.style.display = 'none';
+  
+  // Shfaq p-home
+  document.querySelectorAll('.page').forEach(function(p){
+    p.classList.remove('active');
+  });
+  if(home){
+    home.classList.add('active');
+    home.style.display = 'block';
+  }
+  
+  // Scroll ne krye
+  window.scrollTo(0,0);
+  
+  // Aktivizo te gjitha reveal menjehere
+  document.querySelectorAll('.reveal').forEach(function(el){
+    el.classList.add('visible');
+  });
+  
+  // Setup IntersectionObserver per reveal te tjera
+  if(window.innerWidth > 900){
+    document.querySelectorAll('.reveal').forEach(function(el){
+      el.classList.remove('visible');
+    });
+    var ob = new IntersectionObserver(function(entries){
+      entries.forEach(function(x){if(x.isIntersecting) x.target.classList.add('visible');});
+    },{threshold:0.08});
+    document.querySelectorAll('#p-home .reveal').forEach(function(el){ob.observe(el);});
+  }
+  
+  loadReviews();
 }
 
 function startIntro(){
@@ -1243,19 +1257,10 @@ function confirmCancel(){
 
 // ── INIT ──
 window.addEventListener('load', function(){
-  // Kontrollo nese fotot ekzistojne
   var testImg = new Image();
   testImg.onload = function(){ startIntro(); };
-  testImg.onerror = function(){ 
-    // Fotot nuk u ngarkuan - kalon intro
-    document.getElementById('intro-screen').classList.add('hidden');
-    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-    var home = document.getElementById('p-home');
-    if(home) home.classList.add('active');
-    loadReviews();
-  };
-  testImg.src = '/exterior.jpg';
-  loadReviews();
+  testImg.onerror = function(){ skipIntro(); };
+  testImg.src = '/exterior.jpg?' + Date.now();
 });
 
 </script>
