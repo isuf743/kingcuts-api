@@ -247,103 +247,7 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   .success-details{min-width:unset;width:100%}
 }
 
-/* INTRO CINEMATIC */
-#intro-screen{
-  position:fixed;inset:0;z-index:99999;background:#0a0704;
-  overflow:hidden;transition:opacity .8s ease;
-}
-#intro-screen.fade-out{opacity:0;pointer-events:none;}
-#intro-screen.hidden{display:none !important;pointer-events:none !important;z-index:-1 !important;}
-
-.intro-slide{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;
-  opacity:0;transition:opacity 1.2s ease;
-}
-.intro-slide.active{opacity:1;}
-
-/* Ken Burns zoom effect */
-.intro-slide.zoom-in{
-  animation:kenBurnsIn 5s ease forwards;
-}
-.intro-slide.zoom-out{
-  animation:kenBurnsOut 5s ease forwards;
-}
-@keyframes kenBurnsIn{
-  from{transform:scale(1);} to{transform:scale(1.15);}
-}
-@keyframes kenBurnsOut{
-  from{transform:scale(1.1);} to{transform:scale(1);}
-}
-
-/* Vignette */
-.intro-vignette{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse at center, transparent 40%, rgba(10,7,4,.85) 100%);
-  pointer-events:none;z-index:2;
-}
-
-/* Dark overlay animues */
-.intro-overlay-dark{
-  position:absolute;inset:0;background:#0a0704;
-  opacity:1;transition:opacity 1s ease;z-index:3;pointer-events:none;
-}
-.intro-overlay-dark.clear{opacity:0;}
-
-/* Logo */
-.intro-logo{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;z-index:10;pointer-events:none;
-}
-.intro-logo-inner{
-  text-align:center;transform:translateY(20px);opacity:0;
-  transition:all 1.2s cubic-bezier(.16,1,.3,1);
-}
-.intro-logo-inner.show{transform:translateY(0);opacity:1;}
-.intro-logo-text{
-  font-family:'Cormorant Garamond',serif;
-  font-size:clamp(3rem,8vw,6rem);font-weight:700;
-  color:#c9a84c;letter-spacing:.3em;display:block;
-  text-shadow:0 0 40px rgba(201,168,76,.5),0 2px 8px rgba(0,0,0,.8);
-}
-.intro-logo-line{
-  width:60px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);
-  margin:.8rem auto;
-}
-.intro-logo-sub{
-  font-family:'Outfit',sans-serif;font-size:.75rem;
-  color:rgba(255,240,210,.6);letter-spacing:.4em;text-transform:uppercase;display:block;
-}
-.intro-caption{
-  position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);
-  text-align:center;z-index:10;pointer-events:none;
-  opacity:0;transition:opacity 1s ease;
-}
-.intro-caption.show{opacity:1;}
-.intro-caption p{
-  font-family:'Outfit',sans-serif;font-size:.72rem;
-  color:rgba(255,240,210,.5);letter-spacing:.2em;text-transform:uppercase;
-  animation:captionPulse 2s ease-in-out infinite;
-}
-@keyframes captionPulse{0%,100%{opacity:.4;}50%{opacity:.9;}}
-
-.intro-skip{
-  position:absolute;top:1.5rem;right:1.5rem;z-index:20;
-  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);
-  color:rgba(255,255,255,.5);padding:.4rem 1rem;border-radius:20px;
-  font-family:'Outfit',sans-serif;font-size:.7rem;letter-spacing:.12em;
-  cursor:pointer;transition:all .3s;text-transform:uppercase;
-}
-.intro-skip:hover{background:rgba(0,0,0,.6);color:rgba(255,255,255,.8);}
-
-/* Progress bar */
-.intro-progress{
-  position:absolute;bottom:0;left:0;height:2px;
-  background:linear-gradient(90deg,#c9a84c,#F5C842);
-  width:0%;z-index:20;transition:width linear;
-}
-
-/* ANULIM */
+/* ANULIM *//* ANULIM */
 .cancel-btn{
   display:block;margin:1rem auto 0;padding:.7rem 2rem;
   background:transparent;border:2px solid #e74c3c;color:#e74c3c;
@@ -417,37 +321,12 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
   font-size:.72rem;color:#9e8c70;text-transform:uppercase;
   letter-spacing:.12em;margin-bottom:.5rem;text-align:center;
 }
+/* FADE IN FAQJA */
+@keyframes pageReveal{from{opacity:0;}to{opacity:1;}}
+body{animation:pageReveal .8s ease both;}
 </style>
 </head>
 <body>
-<div id="intro-screen">
-  <!-- Slide 1: Jashtë sallonit -->
-  <div class="intro-slide" id="slide1" 
-       style="background-image:url('/exterior.jpg')">
-  </div>
-  <!-- Slide 2: Brenda sallonit -->
-  <div class="intro-slide" id="slide2"
-       style="background-image:url('/interior.jpg')">
-  </div>
-  
-  <div class="intro-vignette"></div>
-  <div class="intro-overlay-dark" id="intro-dark"></div>
-  
-  <div class="intro-logo">
-    <div class="intro-logo-inner" id="intro-logo-inner">
-      <span class="intro-logo-text">KING CUTS</span>
-      <div class="intro-logo-line"></div>
-      <span class="intro-logo-sub">Salloni Premium · Tiranë</span>
-    </div>
-  </div>
-  
-  <div class="intro-caption" id="intro-caption">
-    <p>✂ Klikoni për të hyrë</p>
-  </div>
-  
-  <div class="intro-progress" id="intro-progress"></div>
-  <button class="intro-skip" onclick="skipIntro()">Kalo →</button>
-</div>
 
 <div class="toast" id="toast"></div>
 <nav id="navbar">
@@ -1091,103 +970,9 @@ function resetAll(){
 }
 
 // ── INTRO CINEMATIC ──
-var introTimer = null;
-var introDone = false;
 
-function skipIntro(){
-  if(introDone) return;
-  introDone = true;
-  clearTimeout(introTimer);
-  
-  var intro = document.getElementById('intro-screen');
-  var home = document.getElementById('p-home');
-  
-  // Fshih intro menjehere - zero delay
-  intro.classList.add('hidden');
-  intro.style.display = 'none';
-  
-  // Shfaq p-home
-  document.querySelectorAll('.page').forEach(function(p){
-    p.classList.remove('active');
-  });
-  if(home){
-    home.classList.add('active');
-    home.style.display = 'block';
-  }
-  
-  // Scroll ne krye
-  window.scrollTo(0,0);
-  
-  // Aktivizo te gjitha reveal menjehere
-  document.querySelectorAll('.reveal').forEach(function(el){
-    el.classList.add('visible');
-  });
-  
-  // Setup IntersectionObserver per reveal te tjera
-  if(window.innerWidth > 900){
-    document.querySelectorAll('.reveal').forEach(function(el){
-      el.classList.remove('visible');
-    });
-    var ob = new IntersectionObserver(function(entries){
-      entries.forEach(function(x){if(x.isIntersecting) x.target.classList.add('visible');});
-    },{threshold:0.08});
-    document.querySelectorAll('#p-home .reveal').forEach(function(el){ob.observe(el);});
-  }
-  
-  loadReviews();
-}
 
-function startIntro(){
-  var slide1 = document.getElementById('slide1');
-  var slide2 = document.getElementById('slide2');
-  var dark = document.getElementById('intro-dark');
-  var logo = document.getElementById('intro-logo-inner');
-  var caption = document.getElementById('intro-caption');
-  var progress = document.getElementById('intro-progress');
-  
-  var totalDuration = 7000; // ms
-  
-  // Progress bar
-  progress.style.transition = 'width '+totalDuration+'ms linear';
-  setTimeout(function(){ progress.style.width = '100%'; }, 100);
-  
-  // Hap dark overlay
-  setTimeout(function(){
-    dark.classList.add('clear');
-    // Slide 1: jashtë - zoom in
-    slide1.classList.add('active','zoom-in');
-  }, 300);
-  
-  // Shfaq logo pas 1.5s
-  setTimeout(function(){
-    logo.classList.add('show');
-  }, 1500);
-  
-  // Slide 2: brenda - pas 3.5s
-  setTimeout(function(){
-    slide1.style.transition = 'opacity 1.2s ease';
-    slide1.style.opacity = '0';
-    slide2.classList.add('active','zoom-out');
-  }, 3500);
-  
-  // Caption pas 5s
-  setTimeout(function(){
-    caption.classList.add('show');
-  }, 5000);
-  
-  // Auto-exit pas 7s
-  introTimer = setTimeout(function(){
-    skipIntro();
-  }, totalDuration);
-  
-  // Klikim për të hyrë
-  document.getElementById('intro-screen').addEventListener('click', function(e){
-    if(e.target.classList.contains('intro-skip')) return;
-    skipIntro();
-  });
-}
-
-// ── CALENDAR ──
+// ── CALENDAR // ── CALENDAR ──
 function generateCalendarLinks(service, barber, dateStr, timeStr, price){
   var months={'Janar':'01','Shkurt':'02','Mars':'03','Prill':'04','Maj':'05','Qershor':'06','Korrik':'07','Gusht':'08','Shtator':'09','Tetor':'10','Nentor':'11','Dhjetor':'12'};
   var parts=dateStr.split(' ');
@@ -1257,10 +1042,7 @@ function confirmCancel(){
 
 // ── INIT ──
 window.addEventListener('load', function(){
-  var testImg = new Image();
-  testImg.onload = function(){ startIntro(); };
-  testImg.onerror = function(){ skipIntro(); };
-  testImg.src = '/exterior.jpg?' + Date.now();
+  loadReviews();
 });
 
 </script>
