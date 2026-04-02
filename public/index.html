@@ -1098,14 +1098,28 @@ function skipIntro(){
   introDone = true;
   clearTimeout(introTimer);
   var intro = document.getElementById('intro-screen');
-  intro.style.transition = 'opacity .8s ease';
+  
+  // Sigurohu qe p-home eshte aktive PARA se intro te fshihet
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var home = document.getElementById('p-home');
+  if(home) home.classList.add('active');
+  
+  // Pastaj fshih intro me animation
+  intro.style.transition = 'opacity 1s ease';
   intro.style.opacity = '0';
   setTimeout(function(){
     intro.classList.add('hidden');
-    // Shfaq faqen kryesore
-    goHome();
     loadReviews();
-  }, 800);
+    // Aktivizo scroll observer per animacionet
+    if(window.innerWidth<=900){
+      document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('visible');});
+    } else {
+      var ob=new IntersectionObserver(function(entries){
+        entries.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible');});
+      },{threshold:0.08});
+      document.querySelectorAll('.reveal').forEach(function(el){ob.observe(el);});
+    }
+  }, 1000);
 }
 
 function startIntro(){
