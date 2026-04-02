@@ -1099,18 +1099,19 @@ function skipIntro(){
   clearTimeout(introTimer);
   var intro = document.getElementById('intro-screen');
   
-  // Sigurohu qe p-home eshte aktive PARA se intro te fshihet
+  intro.style.transition = 'opacity .8s ease';
+  intro.style.opacity = '0';
+  
+  // Aktivizo p-home menjehere - mos prit animation
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   var home = document.getElementById('p-home');
-  if(home) home.classList.add('active');
+  if(home) home.style.display = 'block';
   
-  // Pastaj fshih intro me animation
-  intro.style.transition = 'opacity 1s ease';
-  intro.style.opacity = '0';
   setTimeout(function(){
+    intro.style.display = 'none';
     intro.classList.add('hidden');
-    loadReviews();
-    // Aktivizo scroll observer per animacionet
+    if(home) home.classList.add('active');
+    // Aktivizo animations
     if(window.innerWidth<=900){
       document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('visible');});
     } else {
@@ -1119,7 +1120,7 @@ function skipIntro(){
       },{threshold:0.08});
       document.querySelectorAll('.reveal').forEach(function(el){ob.observe(el);});
     }
-  }, 1000);
+  }, 800);
 }
 
 function startIntro(){
@@ -1242,7 +1243,18 @@ function confirmCancel(){
 
 // ── INIT ──
 window.addEventListener('load', function(){
-  startIntro();
+  // Kontrollo nese fotot ekzistojne
+  var testImg = new Image();
+  testImg.onload = function(){ startIntro(); };
+  testImg.onerror = function(){ 
+    // Fotot nuk u ngarkuan - kalon intro
+    document.getElementById('intro-screen').classList.add('hidden');
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    var home = document.getElementById('p-home');
+    if(home) home.classList.add('active');
+    loadReviews();
+  };
+  testImg.src = '/exterior.jpg';
   loadReviews();
 });
 
