@@ -449,6 +449,296 @@ footer{background:#1a1208;color:#f5ede0;padding:4rem;display:grid;grid-template-
 </div>
 
 <div class="toast" id="toast"></div>
+<nav id="navbar">
+  <div class="nav-logo" onclick="goHome()">✂ KING CUTS</div>
+  <div class="nav-divider"></div>
+  <ul class="nav-center">
+    <li><a onclick="goHome();scrollToSection('gallery')">Galeria</a></li>
+    <li><a onclick="goHome();scrollToSection('reviews-section')">Recensione</a></li>
+    <li><a onclick="goHome();scrollToSection('map-section')">Lokacioni</a></li>
+    <li><a class="nav-rezervo" onclick="goPage('p-service')">&#10022; Rezervo</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="btn-nav" onclick="goPage('p-service')">&#10022; Rezervo Tani</button>
+  </div>
+</nav>
+
+<!-- HOME PAGE -->
+<div id="p-home" class="page active">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-pattern"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">&#10022; Salloni Premium &#10022;</div>
+      <h1>KING<br><span>Cuts</span></h1>
+      <p class="hero-sub">Arti i Berberisë — Eleganca e Stilit</p>
+      <div class="hero-btns">
+        <button class="hero-cta" onclick="goPage('p-service')">Rezervo Tani &rarr;</button>
+        <button class="hero-cta outline" onclick="scrollToSection('gallery')">Shiko Punimet</button>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span>Zbulo</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <section class="home-section" id="gallery">
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Galeria<br><em>e Punimeve</em></h2>
+    </div>
+    <div class="gallery-grid reveal">
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80" alt="Fade"><div class="goverlay"><span>Classic Fade</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80" alt="Prerje"><div class="goverlay"><span>Prerje Moderne</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80" alt="Beard"><div class="goverlay"><span>Rregullim Mjekre</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&q=80" alt="Style"><div class="goverlay"><span>King Experience</span></div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1593702288056-7cc4e2f5b38e?w=400&q=80" alt="Klasik"><div class="goverlay"><span>Stil Klasik</span></div></div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="home-section" id="reviews-section" style="background:var(--bg2)">
+    <div class="section-header reveal"><span class="section-num">02</span><h2 class="section-title">Recensione<br><em>Klientesh</em></h2></div>
+    <div class="reviews-grid" id="reviews-grid">
+      <div class="review-card reveal">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="review-text">Artani eshte thjesht maestro. Prerja doli perfekte, saktesisht sic e kisha imagjinuar. Atmosfera eshte e klasit te pare.</p>
+        <div class="review-author"><div class="review-avatar">EK</div><div><div class="review-name">Endri Karaj</div><div class="review-date">15 Mars 2026</div></div></div>
+      </div>
+      <div class="review-card reveal" style="transition-delay:.1s">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="review-text">Blerim di cffare ben - cdo here dal i kenaqur. Cmimet jane shume te arsyeshme per cilesine e ofruar.</p>
+        <div class="review-author"><div class="review-avatar">AM</div><div><div class="review-name">Aldi Murataj</div><div class="review-date">10 Mars 2026</div></div></div>
+      </div>
+      <div class="review-card reveal" style="transition-delay:.2s">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="review-text">King Experience eshte absolutisht magike. Masazhi i kokes ishte shume relaksues dhe prerja doli perfekte!</p>
+        <div class="review-author"><div class="review-avatar">DS</div><div><div class="review-name">Dritan Sina</div><div class="review-date">5 Mars 2026</div></div></div>
+      </div>
+    </div>
+    <div class="add-review-form reveal" style="margin-top:2rem">
+      <h3>Lini Recensionin Tuaj</h3>
+      <p>Ndani pervojen tuaj me klientet e tjere</p>
+      <div class="stars-input">
+        <button class="star-btn" onclick="setRating(1)">&#9733;</button>
+        <button class="star-btn" onclick="setRating(2)">&#9733;</button>
+        <button class="star-btn" onclick="setRating(3)">&#9733;</button>
+        <button class="star-btn" onclick="setRating(4)">&#9733;</button>
+        <button class="star-btn" onclick="setRating(5)">&#9733;</button>
+      </div>
+      <div class="review-inputs">
+        <input type="text" id="rev-name" placeholder="Emri juaj">
+        <input type="text" id="rev-service" placeholder="Sherbimi i marre">
+      </div>
+      <textarea class="review-textarea" id="rev-text" placeholder="Shkruani recensionin tuaj ketu..."></textarea>
+      <button class="btn-full" style="max-width:240px;margin-top:1rem" onclick="submitReview()">Publiko Recensionin &rarr;</button>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem">
+      <button class="hero-cta" style="font-size:.78rem;padding:.9rem 2.2rem" onclick="goPage('p-service')">Rezervo Tani &rarr;</button>
+    </div>
+  </section>
+
+  <!-- LOKACIONI -->
+  <section class="home-section map-section" id="map-section">
+    <div class="map-layout">
+      <div class="map-info reveal">
+        <h3>Na Gjeni</h3>
+        <div class="map-detail"><div class="map-detail-icon">📍</div><div class="map-detail-text"><h4>Adresa</h4><p>Rruga e Durresit, Nr. 10<br>Tirane, Shqiperi</p></div></div>
+        <div class="map-detail"><div class="map-detail-icon">🕐</div><div class="map-detail-text"><h4>Orari</h4><p>E Hene – E Shtune: 09:00 – 20:00<br>E Diele: Mbyllur</p></div></div>
+        <div class="map-detail"><div class="map-detail-icon">📞</div><div class="map-detail-text"><h4>Kontakt</h4><p>+355 69 123 4567</p></div></div>
+      </div>
+      <div class="map-embed">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2996.3!2d19.818!3d41.327!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDE5JzM3LjIiTiAxOcKwNDknMDQuOCJF!5e0!3m2!1sen!2s!4v1" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <span class="footer-logo">✂ KING CUTS</span>
+      <p class="footer-tagline">Salloni premium ku tradita takohet me stilin modern.</p>
+    </div>
+    <div class="footer-col"><h4>Navigim</h4><a onclick="goPage('p-service')">Rezervo</a><a onclick="scrollToSection('gallery')">Galeria</a><a onclick="scrollToSection('reviews-section')">Recensione</a><a onclick="scrollToSection('map-section')">Lokacioni</a></div>
+    <div class="footer-col"><h4>Sherbimet</h4><a>Prerje Flokesh</a><a>Rregullim Mjekre</a><a>King Experience</a><a>VIP Home Service</a></div>
+    <div class="footer-col"><h4>Kontakt</h4><a href="tel:+355691234567">+355 69 123 4567</a><a href="mailto:info@kingcuts.al">info@kingcuts.al</a><a>Instagram</a><a>Facebook</a></div>
+  </footer>
+  <div class="footer-bottom"><p>&copy; 2026 King Cuts. Te gjitha te drejtat e rezervuara.</p><p>Tirane, Shqiperi</p></div>
+</div>
+
+<!-- SERVICE PAGE -->
+<div id="p-service" class="page booking-page">
+  <div class="booking-header"><div class="booking-header-inner">
+    <div class="progress-bar">
+      <div class="progress-step"><div class="step-circle active">1</div><span class="step-label active">Sherbimi</span></div>
+      <div class="step-line"></div>
+      <div class="progress-step"><div class="step-circle">2</div><span class="step-label">Berberi</span></div>
+      <div class="step-line"></div>
+      <div class="progress-step"><div class="step-circle">3</div><span class="step-label">Data &amp; Ora</span></div>
+    </div>
+    <h2>Zgjidhni Sherbimin</h2><p>Cffare deshironi te beni sot?</p>
+  </div></div>
+  <div class="booking-body">
+    <button class="btn-back" onclick="goHome()">&larr; Kthehu</button>
+    <div class="pricing-tabs">
+      <button class="ptab active" onclick="switchPricing('basic')">Bazike</button>
+      <button class="ptab" onclick="switchPricing('premium')">Premium</button>
+    </div>
+    <div class="pricing-panel active" id="price-basic">
+      <div class="price-card" onclick="selectService(this,'Prerje Flokesh','800 L','30 min')"><span class="price-icon">&#9988;</span><div class="price-name">Prerje Flokesh</div><p class="price-desc">Prerje klasike me makine dhe gershere. Perfshihet larje dhe tharje.</p><span class="price-val">800 L<span class="price-duration"> &middot; 30 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Rregullim Mjekre','500 L','20 min')"><span class="price-icon">&#129746;</span><div class="price-name">Rregullim Mjekre</div><p class="price-desc">Formesim me brisk te nxehte dhe vaj argan premium.</p><span class="price-val">500 L<span class="price-duration"> &middot; 20 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje + Mjeker','1200 L','50 min')"><span class="price-icon">&#128135;</span><div class="price-name">Prerje + Mjeker</div><p class="price-desc">Kombinimi i prerjes dhe rregullimit te mjekres.</p><span class="price-val">1200 L<span class="price-duration"> &middot; 50 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje Femije','500 L','25 min')"><span class="price-icon">&#128102;</span><div class="price-name">Prerje Femije</div><p class="price-desc">Prerje e kujdesshme per femije deri 12 vjec.</p><span class="price-val">500 L<span class="price-duration"> &middot; 25 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+    </div>
+    <div class="pricing-panel" id="price-premium">
+      <div class="price-card featured" onclick="selectService(this,'King Experience','2500 L','75 min')"><span class="price-badge">Bestseller</span><span class="price-icon">&#128081;</span><div class="price-name">King Experience</div><p class="price-desc">Prerje, mjeker me brisk, masazh koke 10 min, vajra premium.</p><span class="price-val">2500 L<span class="price-duration"> &middot; 75 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Grooming i Plote','2000 L','60 min')"><span class="price-icon">&#128136;</span><div class="price-name">Grooming i Plote</div><p class="price-desc">Prerje + mjeker + trajtim lekure + maska fytyre.</p><span class="price-val">2000 L<span class="price-duration"> &middot; 60 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Trajtim Lekure','1500 L','40 min')"><span class="price-icon">&#129404;</span><div class="price-name">Trajtim Lekure</div><p class="price-desc">Pastrimi i thelle dhe hidratim me produkte Kerastase.</p><span class="price-val">1500 L<span class="price-duration"> &middot; 40 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'VIP Home Service','5000 L','90 min')"><span class="price-icon">&#128142;</span><div class="price-name">VIP Home Service</div><p class="price-desc">Sherbim premium ne shtepine tuaj me berberin personal.</p><span class="price-val">5000 L<span class="price-duration"> &middot; 90 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- BARBER PAGE -->
+<div id="p-barber" class="page booking-page">
+  <div class="booking-header"><div class="booking-header-inner">
+    <div class="progress-bar">
+      <div class="progress-step"><div class="step-circle done">&#10003;</div><span class="step-label done">Sherbimi</span></div>
+      <div class="step-line done"></div>
+      <div class="progress-step"><div class="step-circle active">2</div><span class="step-label active">Berberi</span></div>
+      <div class="step-line"></div>
+      <div class="progress-step"><div class="step-circle">3</div><span class="step-label">Data &amp; Ora</span></div>
+    </div>
+    <h2>Zgjidhni Berberin</h2><p>Kush do t'ju sherbeje sot?</p>
+  </div></div>
+  <div class="booking-body">
+    <div class="selection-bar">
+      <div class="sel-item"><span class="sel-label">Sherbimi</span><span class="sel-val" id="b-srv-name">--</span></div>
+      <div class="sel-item"><span class="sel-label">Kohezgjatja</span><span class="sel-val" id="b-srv-dur">--</span></div>
+      <div class="sel-item"><span class="sel-label">Cmimi</span><span class="sel-val" id="b-srv-price">--</span></div>
+    </div>
+    <button class="btn-back" onclick="goPage('p-service')">&larr; Ndrysho Sherbimin</button>
+    <div class="barbers-grid" id="barbers-grid-booking"><div style="padding:2rem;color:#7a6a50;grid-column:span 4;font-style:italic">Duke ngarkuar berberat...</div></div>
+  </div>
+</div>
+
+<!-- CALENDAR PAGE -->
+<div id="p-calendar" class="page booking-page">
+  <div class="booking-header"><div class="booking-header-inner">
+    <div class="progress-bar">
+      <div class="progress-step"><div class="step-circle done">&#10003;</div><span class="step-label done">Sherbimi</span></div>
+      <div class="step-line done"></div>
+      <div class="progress-step"><div class="step-circle done">&#10003;</div><span class="step-label done">Berberi</span></div>
+      <div class="step-line done"></div>
+      <div class="progress-step"><div class="step-circle active">3</div><span class="step-label active">Data &amp; Ora</span></div>
+    </div>
+    <h2>Zgjidhni Daten &amp; Oren</h2><p>Kur deshironi te vini?</p>
+  </div></div>
+  <div class="booking-body">
+    <div class="selection-bar">
+      <div class="sel-item"><span class="sel-label">Sherbimi</span><span class="sel-val" id="c-srv-name">--</span></div>
+      <div class="sel-item"><span class="sel-label">Berberi</span><span class="sel-val" id="c-brb-name">--</span></div>
+      <div class="sel-item"><span class="sel-label">Cmimi</span><span class="sel-val" id="c-srv-price">--</span></div>
+    </div>
+    <button class="btn-back" onclick="goPage('p-barber')">&larr; Ndrysho Berberin</button>
+    <div class="cal-confirm-layout">
+      <div>
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+            <span class="cal-month" id="cal-month-label"></span>
+            <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+          </div>
+          <div class="cal-days-head">
+            <div class="cal-day-name">Hë</div><div class="cal-day-name">Ma</div><div class="cal-day-name">Më</div>
+            <div class="cal-day-name">En</div><div class="cal-day-name">Pr</div><div class="cal-day-name">Sh</div><div class="cal-day-name">Di</div>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+        <div class="time-section">
+          <h4>&#128336; Oret e Lira</h4>
+          <div id="slots-container"><div class="no-date-msg">Zgjidhni daten per te pare oret e lira</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="waiting-msg" id="waiting-msg">&#128336; Zgjidhni nje date dhe ore per te vazhduar</div>
+        <div class="confirm-form" id="confirm-form" style="display:none">
+          <h4>Konfirmoni Rezervimin</h4>
+          <div class="summary-box">
+            <div class="summary-row"><span>Sherbimi</span><span id="sum-srv">--</span></div>
+            <div class="summary-row"><span>Berberi</span><span id="sum-brb">--</span></div>
+            <div class="summary-row"><span>Data</span><span id="sum-date">--</span></div>
+            <div class="summary-row"><span>Ora</span><span id="sum-time">--</span></div>
+            <div class="summary-row summary-total"><span>Totali</span><span id="sum-price">--</span></div>
+          </div>
+          <div class="fg"><label>Emri i Plote *</label><input type="text" id="inp-name" placeholder="Emri juaj i plote" oninput="this.value=this.value.replace(/[^a-zA-ZëËçÇäÄöÖüÜ\s\-']/g,'')"><span class="field-error" id="err-name">Emri duhet te kete min 2 karaktere</span></div>
+          <div class="fg"><label>Telefoni *</label><input type="tel" id="inp-phone" placeholder="+355 69 123 4567" maxlength="18" oninput="formatPhone(this)"><span class="field-error" id="err-phone">Format i sakte: +355 68/69 XXX XXXX</span></div>
+          <div class="fg"><label>Email (opsional)</label><input type="email" id="inp-email" placeholder="emri@gmail.com"><span class="field-error" id="err-email">Vendosni nje adrese Gmail te vlefshme</span></div>
+          <button class="btn-full" onclick="submitBooking()">&#10003; Konfirmo Rezervimin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS PAGE -->
+<div id="p-success" class="page booking-page">
+  <div style="max-width:620px;margin:0 auto;padding:2rem 1.5rem">
+    <div class="success-page">
+      <div class="success-icon">&#127881;</div>
+      <h2>Rezervimi Konfirmuar!</h2>
+      <p>Ju presim me padurim ne sallonin tone. Detajet u derguan ne email-in tuaj.</p>
+      <div class="email-notice"><span style="font-size:1.2rem">&#128231;</span><span>Email konfirmimi u dergua te: <strong id="s-email-shown">--</strong></span></div>
+      <div class="success-details">
+        <div class="sdet-row"><span>Sherbimi</span><span id="s-srv">--</span></div>
+        <div class="sdet-row"><span>Berberi</span><span id="s-brb">--</span></div>
+        <div class="sdet-row"><span>Data</span><span id="s-date">--</span></div>
+        <div class="sdet-row"><span>Ora</span><span id="s-time">--</span></div>
+        <div class="sdet-row"><span>Cmimi</span><span id="s-price">--</span></div>
+      </div>
+      <div class="qr-section">
+        <h4>&#128241; QR Kodi i Rezervimit</h4>
+        <p>Trego kete kod ne sallon per konfirmim te shpejte</p>
+        <img id="qr-img" width="200" height="200" style="border:3px solid #1a1208;border-radius:4px;display:none;margin:0 auto;background:#f5f0e8;" alt="QR Code i Rezervimit">
+        <br>
+        <a class="qr-download" id="qr-download" download="rezervimi-kingcuts.png" style="opacity:.5;pointer-events:none" target="_blank">&#8595; Shkarko QR</a>
+      </div>
+      <div style="margin:1.2rem 0">
+        <div class="cal-section-label">&#128197; Shto ne Kalendar</div>
+        <div class="cal-buttons">
+          <a class="cal-btn cal-btn-google" id="cal-google" href="#" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google Calendar
+          </a>
+          <a class="cal-btn cal-btn-apple" id="cal-apple" href="#" download="rezervimi-kingcuts.ics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#c9a84c"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Apple / Outlook
+          </a>
+        </div>
+      </div>
+      <button class="hero-cta" onclick="resetAll()">&larr; Kthehu ne Faqen Kryesore</button>
+      <button class="cancel-btn" onclick="openCancelModal()">&#10005; Anulo Rezervimin</button>
+    </div>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal-box">
+    <h3>&#9888; Anulo Rezervimin</h3>
+    <p>Shkruaj numrin tuaj te telefonit per te konfirmuar anulimin.</p>
+    <div class="cancel-form">
+      <input type="tel" id="cancel-phone" placeholder="+355 69 123 4567" maxlength="18" oninput="formatPhone(this)" style="text-align:center;font-size:1.1rem;letter-spacing:.05em">
+      <div style="font-size:.75rem;color:#9e8c70;margin-bottom:.5rem">Shkruaj numrin si: <strong>+355 69 XXX XXXX</strong></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-back" onclick="closeCancelModal()">&larr; Kthehu</button>
+      <button class="modal-btn-cancel" onclick="confirmCancel()">&#10005; Anulo Rezervimin</button>
+    </div>
+    <div id="cancel-msg" style="margin-top:1rem;font-size:.85rem;color:#e74c3c;display:none"></div>
+  </div>
+</div>
 
 <script>
 var booking = {service:'', price:'', duration:'', barber:'', barberId:0};
