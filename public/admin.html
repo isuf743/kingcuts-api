@@ -191,6 +191,16 @@ tr:hover td{background:var(--bg)}
   z-index:100;transition:all .2s;
 }
 .notif-sound-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+
+.chart-tabs{display:flex;gap:.5rem;margin-bottom:1rem}
+.chart-tab{padding:.4rem 1rem;border:1px solid var(--border);border-radius:4px;font-size:.75rem;font-weight:600;cursor:pointer;background:var(--card);color:var(--muted);transition:all .2s}
+.chart-tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold)}
+.chart-card{background:var(--card);border:2px solid var(--border);border-radius:8px;padding:1.5rem;margin-top:1.5rem}
+.chart-card h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--dark);margin-bottom:1rem}
+.revenue-bar{background:linear-gradient(to top,#27ae60,#2ecc71)}
+.chart-legend{display:flex;gap:1rem;margin-top:.8rem;font-size:.72rem;color:var(--muted)}
+.chart-legend span{display:flex;align-items:center;gap:.3rem}
+.chart-legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
 </style>
 </head>
 <body>
@@ -267,6 +277,24 @@ tr:hover td{background:var(--bg)}
       <div class="chart-card">
         <h3>📈 Rezervimet — 7 Ditët e Fundit</h3>
         <div class="chart-bars" id="chart-bars"><div class="loading">Duke ngarkuar...</div></div>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="margin-bottom:0">💰 Fitimi Mujor</h3>
+          <div class="chart-tabs">
+            <div class="chart-tab active" onclick="switchRevenueChart('monthly',this)">6 Muajt</div>
+            <div class="chart-tab" onclick="switchRevenueChart('daily',this)">30 Ditët</div>
+          </div>
+        </div>
+        <div class="chart-bars" id="chart-revenue" style="height:150px"><div class="loading">Duke ngarkuar...</div></div>
+        <div class="chart-legend">
+          <span><i style="background:#27ae60"></i> Fitim i Konfirmuar</span>
+          <span><i style="background:var(--gold)"></i> Gjithsej Rezervime</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>🏆 Berberët — Performanca</h3>
+        <div id="chart-barbers"><div class="loading">Duke ngarkuar...</div></div>
       </div>
     </section>
 
@@ -1071,6 +1099,127 @@ function playNotifSound(){
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.4);
   } catch(e){}
+}
+
+
+// ── GRAFIQET E REJA ──
+async function loadRevenueChart(mode){
+  try{
+    const bookings = await apiGet('get_bookings')
+    if(!bookings || !bookings.length){
+      document.getElementById('chart-revenue').innerHTML='<div class="empty-state"><p>Nuk ka të dhëna</p></div>'
+      return
+    }
+    
+    var data = {}
+    var now = new Date()
+    
+    if(mode === 'monthly'){
+      // 6 muajt e fundit
+      for(var i=5;i>=0;i--){
+        var d = new Date(now.getFullYear(), now.getMonth()-i, 1)
+        var key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+        var label = ['Jan','Shk','Mar','Pri','Maj','Qer','Kor','Gus','Sht','Tet','Nën','Dhj'][d.getMonth()]
+        data[key] = {label:label, revenue:0, count:0}
+      }
+      bookings.forEach(function(b){
+        var key = b.booking_date ? b.booking_date.substring(0,7) : ''
+        if(data[key]){
+          data[key].count++
+          if(b.status==='completed'){
+            var price = parseFloat((b.price||'0').replace(/[^0-9.]/g,'')) || 0
+            data[key].revenue += price
+          }
+        }
+      })
+    } else {
+      // 30 ditet e fundit
+      for(var i=29;i>=0;i--){
+        var d = new Date(now); d.setDate(now.getDate()-i)
+        var key = d.toISOString().split('T')[0]
+        var label = d.getDate()+''
+        data[key] = {label:label, revenue:0, count:0}
+      }
+      bookings.forEach(function(b){
+        var key = b.booking_date || ''
+        if(data[key]){
+          data[key].count++
+          if(b.status==='completed'){
+            var price = parseFloat((b.price||'0').replace(/[^0-9.]/g,'')) || 0
+            data[key].revenue += price
+          }
+        }
+      })
+    }
+    
+    var items = Object.values(data)
+    var maxRev = Math.max(...items.map(d=>d.revenue), 1)
+    var maxCnt = Math.max(...items.map(d=>d.count), 1)
+    
+    var html = ''
+    items.forEach(function(d){
+      var revPct = (d.revenue/maxRev)*100
+      var cntPct = (d.count/maxCnt)*100
+      html += '<div class="chart-bar-wrap" style="position:relative">' +
+        '<div style="display:flex;gap:2px;align-items:flex-end;height:130px">' +
+        '<div style="width:45%;background:linear-gradient(to top,#27ae60,#2ecc71);height:'+revPct+'%;min-height:'+(d.revenue>0?'4px':'0')+'px;border-radius:2px 2px 0 0;transition:height .5s" title="'+Math.round(d.revenue)+' L"></div>' +
+        '<div style="width:45%;background:var(--gold);opacity:.6;height:'+cntPct+'%;min-height:'+(d.count>0?'4px':'0')+'px;border-radius:2px 2px 0 0;transition:height .5s" title="'+d.count+' rez"></div>' +
+        '</div>' +
+        '<div class="chart-bar-label">'+d.label+'</div>' +
+        (d.revenue>0?'<div style="font-size:.6rem;color:#27ae60;font-weight:700">'+Math.round(d.revenue/1000)+'k</div>':'') +
+        '</div>'
+    })
+    document.getElementById('chart-revenue').innerHTML = html
+  } catch(e){
+    document.getElementById('chart-revenue').innerHTML='<div class="empty-state"><p>Gabim ngarkimi</p></div>'
+  }
+}
+
+function switchRevenueChart(mode, el){
+  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('chart-revenue').innerHTML='<div class="loading">Duke ngarkuar...</div>'
+  loadRevenueChart(mode)
+}
+
+async function loadBarbersChart(){
+  try{
+    const bookings = await apiGet('get_bookings')
+    const barbers = await apiGet('get_barbers')
+    if(!bookings || !barbers) return
+
+    var stats = {}
+    barbers.forEach(function(b){ stats[b.name]={name:b.name, total:0, completed:0, revenue:0} })
+    bookings.forEach(function(b){
+      if(stats[b.barber_name]){
+        stats[b.barber_name].total++
+        if(b.status==='completed'){
+          stats[b.barber_name].completed++
+          stats[b.barber_name].revenue += parseFloat((b.price||'0').replace(/[^0-9.]/g,'')) || 0
+        }
+      }
+    })
+
+    var items = Object.values(stats).sort((a,b)=>b.revenue-a.revenue)
+    var maxRev = Math.max(...items.map(d=>d.revenue), 1)
+
+    var html = '<div style="display:flex;flex-direction:column;gap:.8rem">'
+    items.forEach(function(d){
+      var pct = Math.round((d.revenue/maxRev)*100)
+      html += '<div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.3rem">' +
+        '<span style="font-weight:600;color:var(--dark)">'+d.name+'</span>' +
+        '<span style="color:var(--muted)">'+d.completed+' rez · <strong style="color:#27ae60">'+Math.round(d.revenue).toLocaleString()+' L</strong></span>' +
+        '</div>' +
+        '<div style="background:var(--bg2);border-radius:4px;height:8px;overflow:hidden">' +
+        '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--gold),#F5C842);border-radius:4px;transition:width .6s"></div>' +
+        '</div></div>'
+    })
+    html += '</div>'
+    document.getElementById('chart-barbers').innerHTML = html
+  } catch(e){
+    document.getElementById('chart-barbers').innerHTML='<div class="empty-state"><p>Gabim ngarkimi</p></div>'
+  }
 }
 
 // Fillo polling kur hapet app
