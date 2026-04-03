@@ -144,9 +144,36 @@ if($action === 'update_booking' && $method === 'POST'){
     $status = isset($input['status']) ? $input['status'] : '';
     $allowed = array('pending','confirmed','completed','cancelled');
     if(!$id || !in_array($status, $allowed)) respond(array('error'=>'Te dhena te pavlefshme'), 400);
+    
+    // Merr booking info para update
+    $old = $db->query("SELECT status, client_phone, client_name FROM bookings WHERE id=$id")->fetch_assoc();
+    
     $stmt = $db->prepare("UPDATE bookings SET status=? WHERE id=?");
     $stmt->bind_param('si', $status, $id);
     $stmt->execute();
+    
+    // Nese u be completed -> shto 10 pike
+    if($old && $old['status'] !== 'completed' && $status === 'completed' && $old['client_phone']){
+        $phone = $old['client_phone'];
+        $name  = $old['client_name'];
+        $db->prepare("INSERT INTO loyalty_points (client_phone, client_name, points, total_bookings)
+                      VALUES (?, ?, 10, 1)
+                      ON DUPLICATE KEY UPDATE
+                      points = points + 10,
+                      total_bookings = total_bookings + 1,
+                      client_name = VALUES(client_name)"
+        )->bind_param('ss', $phone, $name) || null;
+        $lp = $db->prepare("INSERT INTO loyalty_points (client_phone, client_name, points, total_bookings) VALUES (?,?,10,1) ON DUPLICATE KEY UPDATE points=points+10, total_bookings=total_bookings+1, client_name=VALUES(client_name)");
+        $lp->bind_param('ss', $phone, $name);
+        $lp->execute();
+    }
+    
+    // Nese u anulua pas completed -> hiq 10 pike
+    if($old && $old['status'] === 'completed' && $status === 'cancelled' && $old['client_phone']){
+        $phone = $old['client_phone'];
+        $db->query("UPDATE loyalty_points SET points=GREATEST(0,points-10), total_bookings=GREATEST(0,total_bookings-1) WHERE client_phone='".mysqli_real_escape_string($db,$phone)."'");
+    }
+    
     respond(array('success'=>true));
 }
 
@@ -492,6 +519,79 @@ if($action === 'cancel_booking_client' && $method === 'POST'){
     $stmt2->bind_param('i', $id);
     $stmt2->execute();
     respond(array('success'=>true));
+}
+
+
+// ── LOYALTY SYSTEM ──
+if($action === 'get_loyalty' && $method === 'GET'){
+    $db = getDB();
+    $phone = isset($_GET['phone']) ? trim($_GET['phone']) : '';
+    if(!$phone) respond(array('error'=>'Telefoni mungon'), 400);
+    
+    $stmt = $db->prepare("SELECT * FROM loyalty_points WHERE client_phone=?");
+    $stmt->bind_param('s', $phone);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    
+    if(!$row){
+        respond(array('success'=>true,'phone'=>$phone,'points'=>0,'total_bookings'=>0,'free_services'=>0,'free_services_used'=>0,'points_to_next'=>100));
+    }
+    
+    $points = intval($row['points']);
+    $free_services = floor($points / 100);
+    $used = intval($row['free_services_used']);
+    $available = $free_services - $used;
+    $next_free = $points % 100;
+    
+    respond(array(
+        'success' => true,
+        'phone' => $phone,
+        'client_name' => $row['client_name'],
+        'points' => $points,
+        'total_bookings' => intval($row['total_bookings']),
+        'free_services' => $free_services,
+        'free_services_used' => $used,
+        'free_services_available' => max(0, $available),
+        'points_to_next' => $next_free === 0 ? 100 : 100 - $next_free
+    ));
+}
+
+if($action === 'get_loyalty_stats' && $method === 'GET'){
+    $db = getDB();
+    
+    $top = $db->query("SELECT * FROM loyalty_points ORDER BY points DESC LIMIT 20")->fetch_all(MYSQLI_ASSOC);
+    $total_clients = $db->query("SELECT COUNT(*) as c FROM loyalty_points")->fetch_assoc()['c'];
+    $loyal_clients = $db->query("SELECT COUNT(*) as c FROM loyalty_points WHERE total_bookings >= 5")->fetch_assoc()['c'];
+    $total_points  = $db->query("SELECT SUM(points) as t FROM loyalty_points")->fetch_assoc()['t'];
+    
+    respond(array(
+        'top_clients' => $top,
+        'total_clients' => $total_clients,
+        'loyal_clients' => $loyal_clients,
+        'total_points'  => intval($total_points)
+    ));
+}
+
+
+// SHTO: perdor sherbim falas
+if($action === 'use_free_service' && $method === 'POST'){
+    $db = getDB();
+    $phone = isset($input['phone']) ? trim($input['phone']) : '';
+    if(!$phone) respond(array('error'=>'Telefoni mungon'), 400);
+    
+    $stmt = $db->prepare("SELECT points, free_services_used FROM loyalty_points WHERE client_phone=?");
+    $stmt->bind_param('s', $phone);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if(!$row) respond(array('error'=>'Klienti nuk u gjet'), 404);
+    
+    $available = floor($row['points']/100) - $row['free_services_used'];
+    if($available <= 0) respond(array('error'=>'Nuk ka sherbime falas te disponueshme'), 400);
+    
+    $stmt2 = $db->prepare("UPDATE loyalty_points SET free_services_used=free_services_used+1 WHERE client_phone=?");
+    $stmt2->bind_param('s', $phone);
+    $stmt2->execute();
+    respond(array('success'=>true, 'message'=>'Sherbimi falas u perdor!'));
 }
 
 respond(array('error'=>'Action e panjohur: '.$action), 404);

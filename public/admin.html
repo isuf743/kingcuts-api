@@ -246,6 +246,7 @@ tr:hover td{background:var(--bg)}
 
       <div class="nav-item" onclick="showSection('schedules')"><span class="nav-icon">🕐</span> Oraret</div>
       <div class="nav-item" onclick="showSection('reviews')"><span class="nav-icon">⭐</span> Reviews</div>
+      <div class="nav-item" onclick="showSection('loyalty')"><span class="nav-icon">🏅</span> Loyalty</div>
       <div class="nav-item" onclick="showSection('accounts')"><span class="nav-icon">🔑</span> Llogaritë</div>
     </nav>
     <div class="sidebar-footer">
@@ -386,6 +387,40 @@ tr:hover td{background:var(--bg)}
           <div class="form-group"><label>Password</label><input type="password" id="acc-password" placeholder="Minimum 6 karaktere"></div>
           <button class="btn-add" onclick="saveAccount()">💾 Ruaj Llogarinë</button>
         </div>
+      </div>
+    </section>
+
+
+    <!-- LOYALTY -->
+    <section class="section" id="sec-loyalty">
+      <div class="page-header">
+        <h1>Sistema Loyalty</h1>
+        <p>1 rezervim i kryer = 10 pikë &nbsp;·&nbsp; 100 pikë = 1 shërbim falas</p>
+      </div>
+
+      <!-- Stats kryesore -->
+      <div class="stats-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card gold"><div class="stat-icon">👥</div><div class="stat-val" id="ly-total">—</div><div class="stat-label">Klientë Unik</div></div>
+        <div class="stat-card green"><div class="stat-icon">🏅</div><div class="stat-val" id="ly-loyal">—</div><div class="stat-label">Klientë Besnikë (5+ rez)</div></div>
+        <div class="stat-card blue"><div class="stat-icon">⭐</div><div class="stat-val" id="ly-pts-total">—</div><div class="stat-label">Pikë Totale</div></div>
+        <div class="stat-card blue"><div class="stat-icon">🔍</div>
+          <div style="padding:.5rem 0">
+            <input type="tel" id="ly-search-phone" placeholder="+355 69 XXX XXXX" 
+              style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:.8rem;background:var(--bg)"
+              oninput="formatLoyaltyPhone(this)">
+            <button onclick="searchLoyalty()" 
+              style="width:100%;margin-top:.4rem;padding:.5rem;background:var(--gold);border:none;border-radius:4px;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer">
+              Kërko Pikët
+            </button>
+          </div>
+          <div id="ly-search-result" style="font-size:.8rem;margin-top:.3rem"></div>
+        </div>
+      </div>
+
+      <!-- Top klientet -->
+      <div class="table-card">
+        <div class="table-header"><h3>🏆 Klientët më Besnikë</h3></div>
+        <div id="loyalty-table"><div class="loading">Duke ngarkuar...</div></div>
       </div>
     </section>
 
@@ -536,6 +571,7 @@ function showSection(name){
   if(event && event.currentTarget) event.currentTarget.classList.add('active')
   if(name==='reviews') loadReviews()
   if(name==='accounts') loadAccounts()
+  if(name==='loyalty') loadLoyalty()
 }
 
 // ── API ──
@@ -1224,6 +1260,101 @@ async function loadBarbersChart(){
 
 // Fillo polling kur hapet app
 var _origShowApp = showApp;
+
+// ── LOYALTY ──
+function formatLoyaltyPhone(input){
+  var v=input.value.replace(/[^\d+]/g,'');
+  if(v.charAt(0)!=='+'){if(v.indexOf('355')===0)v='+'+v;else v='+355'+v.replace(/^0+/,'');}
+  var d=v.replace(/\D/g,'');
+  if(d.length<=3){input.value='+'+d;return;}
+  var f='+'+d.slice(0,3);var r=d.slice(3);
+  if(r.length>0)f+=' '+r.slice(0,2);
+  if(r.length>2)f+=' '+r.slice(2,5);
+  if(r.length>5)f+=' '+r.slice(5,9);
+  input.value=f;
+}
+
+async function loadLoyalty(){
+  try{
+    const data = await apiGet('get_loyalty_stats')
+    if(!data) return
+    
+    document.getElementById('ly-total').textContent = data.total_clients || 0
+    document.getElementById('ly-loyal').textContent = data.loyal_clients || 0
+    if(document.getElementById('ly-pts-total')) document.getElementById('ly-pts-total').textContent = (data.total_points||0).toLocaleString()
+    
+    const clients = data.top_clients || []
+    if(!clients.length){
+      document.getElementById('loyalty-table').innerHTML = '<div class="empty">Nuk ka të dhëna ende.</div>'
+      return
+    }
+    
+    let html = '<table><thead><tr><th>#</th><th>Klienti</th><th>Telefoni</th><th>Rezervime</th><th>Pikë</th><th>Shërbime Falas</th><th>Progresi</th></tr></thead><tbody>'
+    clients.forEach(function(c, i){
+      const points = parseInt(c.points) || 0
+      const free = Math.floor(points / 100)
+      const pct = points % 100
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'  '
+      const avail = parseInt(c.free_services_available||0)
+      html += `<tr>
+        <td>${medal} ${i+1}</td>
+        <td><strong>${c.client_name||'—'}</strong></td>
+        <td style="font-size:.8rem">${c.client_phone||'—'}</td>
+        <td><span class="badge badge-confirmed">${c.total_bookings||0}</span></td>
+        <td><strong style="color:var(--gold)">${points}</strong></td>
+        <td>${avail > 0 ? `<span class="badge badge-completed">🎁 ${avail}</span>` : '—'}</td>
+        <td>
+          <div style="background:var(--bg2);border-radius:4px;height:6px;width:100px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold),#F5C842)"></div>
+          </div>
+          <div style="font-size:.62rem;color:var(--muted)">${pct}/100</div>
+        </td>
+        <td>${avail > 0 ? `<button class="action-btn green" onclick="useFreeService('${c.client_phone}')">✓ Përdor Falas</button>` : '—'}</td>
+      </tr>`
+    })
+    html += '</tbody></table>'
+    document.getElementById('loyalty-table').innerHTML = html
+  } catch(e){
+    document.getElementById('loyalty-table').innerHTML = '<div class="empty">Gabim ngarkimi.</div>'
+  }
+}
+
+async function useFreeService(phone){
+  if(!confirm('Përdor 1 shërbim falas për '+phone+'?')) return
+  try{
+    const res = await api('use_free_service', {phone})
+    if(res.success){ showToast('✅ Shërbimi falas u shënua!'); loadLoyalty(); }
+    else showToast('⚠ ' + (res.error||'Gabim'))
+  } catch(e){ showToast('⚠ Gabim lidhje') }
+}
+
+async function searchLoyalty(){
+  const phone = document.getElementById('ly-search-phone').value.trim()
+  const result = document.getElementById('ly-search-result')
+  if(!phone){ result.innerHTML='<span style="color:var(--red)">Shkruaj numrin!</span>'; return }
+  
+  result.innerHTML = 'Duke kërkuar...'
+  try{
+    const data = await apiGet('get_loyalty', 'phone='+encodeURIComponent(phone))
+    if(data.success){
+      const free = data.free_services
+      const next = data.points_to_next
+      const avail2 = data.free_services_available||0
+      result.innerHTML = `
+        <div style="background:var(--bg2);padding:.8rem;border-radius:4px;margin-top:.3rem;border:1px solid var(--border)">
+          <div style="font-weight:700;color:var(--dark)">${data.points} Pikë</div>
+          <div style="font-size:.72rem;color:var(--muted)">${data.total_bookings||0} rezervime</div>
+          ${avail2>0?`<div style="color:#27ae60;font-weight:600;margin-top:.3rem">🎁 ${avail2} falas të disponueshëm!</div>`:''}
+          <div style="font-size:.72rem;color:var(--muted)">Edhe ${data.points_to_next} pikë → tjetri falas</div>
+        </div>`
+    } else {
+      result.innerHTML = `<span style="color:var(--red)">${data.error||'Nuk u gjet'}</span>`
+    }
+  } catch(e){
+    result.innerHTML = '<span style="color:var(--red)">Gabim lidhje!</span>'
+  }
+}
+
 </script>
 </body>
 </html>

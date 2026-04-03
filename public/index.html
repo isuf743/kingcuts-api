@@ -433,6 +433,27 @@ body{animation:pageReveal .8s ease both;}
 
 .btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(26,18,8,.3);border-top-color:#1a1208;border-radius:50%;animation:spin .7s linear infinite;margin-right:.5rem;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.loyalty-card{
+  background:linear-gradient(135deg,#1a1208,#2e2518);
+  border:2px solid #c9a84c;border-radius:8px;
+  padding:1.5rem;margin:1.5rem 0;text-align:center;
+  position:relative;overflow:hidden;
+}
+.loyalty-card::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(201,168,76,.08);
+}
+.loyalty-pts{
+  font-family:'Cormorant Garamond',serif;
+  font-size:3rem;font-weight:700;color:#c9a84c;line-height:1;
+}
+.loyalty-lbl{font-size:.72rem;color:rgba(255,240,210,.5);letter-spacing:.15em;text-transform:uppercase;margin-top:.2rem}
+.loyalty-bar-wrap{background:rgba(255,255,255,.1);border-radius:4px;height:6px;margin:1rem 0;overflow:hidden}
+.loyalty-bar-fill{height:100%;background:linear-gradient(90deg,#c9a84c,#F5C842);border-radius:4px;transition:width 1s ease}
+.loyalty-msg{font-size:.8rem;color:rgba(255,240,210,.6);margin-top:.3rem}
+.loyalty-free{background:rgba(39,174,96,.15);border:1px solid rgba(39,174,96,.4);color:#2ecc71;border-radius:4px;padding:.5rem 1rem;font-size:.82rem;font-weight:700;margin-top:.8rem;display:inline-block}
 </style>
 </head>
 <body>
@@ -921,6 +942,14 @@ body{animation:pageReveal .8s ease both;}
         <div class="sdet-row"><span>Ora</span><span id="s-time">--</span></div>
         <div class="sdet-row"><span>Cmimi</span><span id="s-price">--</span></div>
       </div>
+      <div class="loyalty-card" id="loyalty-card" style="display:none">
+        <div style="font-size:.7rem;color:rgba(255,240,210,.4);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem">🏅 Pikët Tuaja</div>
+        <div class="loyalty-pts" id="ly-pts">0</div>
+        <div class="loyalty-lbl">Pikë Loyalty</div>
+        <div class="loyalty-bar-wrap"><div class="loyalty-bar-fill" id="ly-bar" style="width:0%"></div></div>
+        <div class="loyalty-msg" id="ly-msg"></div>
+        <div id="ly-free" style="display:none" class="loyalty-free">🎁 Keni fituar 1 shërbim falas!</div>
+      </div>
       <div class="qr-section">
         <h4>&#128241; QR Kodi i Rezervimit</h4>
         <p>Trego kete kod ne sallon per konfirmim te shpejte</p>
@@ -1277,6 +1306,7 @@ function submitBooking(){
         // Ruaj te dhenat per success page PARA goPage
         var _srv=booking.service,_brb=booking.barber,_date=selDateLabel,_slot=selSlot,_price=booking.price,_id=lastBookingId;
         
+        var _phone = phone; // Ruaj per loyalty
         // ANTI-REFRESH: pastro formen dhe state menjehere
         document.getElementById('inp-name').value='';
         document.getElementById('inp-phone').value='';
@@ -1288,6 +1318,8 @@ function submitBooking(){
         // Shfaq success page
         goPage('p-success');
         showQRCode(_id, _srv, _brb, _date, _slot);
+  // Shfaq loyalty pikët
+  loadLoyaltyCard(_phone);
         generateCalendarLinks(_srv, _brb, _date, _slot, _price);
         if(email){
           fetch('https://kingcuts-api-production.up.railway.app/api.php?action=send_email',{
@@ -1474,6 +1506,30 @@ function confirmCancel(){
     if(res.success){sessionStorage.removeItem('kc_booking_id');sessionStorage.removeItem('kc_booking_phone');closeCancelModal();showToast('✓ Rezervimi u anulua!');setTimeout(function(){resetAll();},2000);}
     else{msg.textContent=res.error||'Numri nuk përputhet!';msg.style.display='block';}
   }).catch(function(){msg.textContent='Gabim lidhje!';msg.style.display='block';});
+}
+
+
+function loadLoyaltyCard(phone){
+  if(!phone) return;
+  var API_URL = 'https://kingcuts-api-production.up.railway.app/api.php';
+  fetch(API_URL+'?action=get_loyalty&phone='+encodeURIComponent(phone))
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.success) return;
+    var card = document.getElementById('loyalty-card');
+    if(!card) return;
+    card.style.display = 'block';
+    document.getElementById('ly-pts').textContent = data.points;
+    var pct = data.points % 100;
+    document.getElementById('ly-bar').style.width = pct + '%';
+    var free = data.free_services;
+    if(free > 0){
+      document.getElementById('ly-free').style.display = 'inline-block';
+      document.getElementById('ly-msg').textContent = 'Urime! Keni fituar '+free+' shërbim falas!';
+    } else {
+      document.getElementById('ly-msg').textContent = 'Edhe '+(100-pct)+' pikë deri te shërbimi falas.';
+    }
+  }).catch(function(){});
 }
 
 window.addEventListener('load', function(){

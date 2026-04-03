@@ -105,5 +105,19 @@ $conn->query("CREATE TABLE IF NOT EXISTS reviews (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
+
+// Tabela loyalty_points
+$conn->query("CREATE TABLE IF NOT EXISTS loyalty_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_phone VARCHAR(30) NOT NULL,
+    client_name VARCHAR(100),
+    points INT DEFAULT 0,
+    total_bookings INT DEFAULT 0,
+    free_services_used INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_phone (client_phone)
+)");
+
 echo json_encode(array('success'=>true, 'message'=>'Database u konfigurua! Hyr si admin/admin123'));
 ?>
