@@ -891,7 +891,7 @@ body{animation:pageReveal .8s ease both;}
           </div>
           <div class="fg"><label>Emri i Plote *</label><input type="text" id="inp-name" placeholder="Emri juaj i plote" oninput="this.value=this.value.replace(/[^a-zA-ZëËçÇäÄöÖüÜ\s\-']/g,'')"><span class="field-error" id="err-name">Emri duhet te kete min 2 karaktere</span></div>
           <div class="fg"><label>Telefoni *</label><input type="tel" id="inp-phone" placeholder="+355 69 123 4567" maxlength="18" oninput="formatPhone(this)"><span class="field-error" id="err-phone">Format i sakte: +355 68/69 XXX XXXX</span></div>
-          <div class="fg"><label>Email (opsional)</label><input type="email" id="inp-email" placeholder="emri@gmail.com"><span class="field-error" id="err-email">Vendosni nje adrese Gmail te vlefshme</span></div>
+          <div class="fg"><label>Email (opsional)</label><input type="email" id="inp-email" placeholder="emri@email.com"><span class="field-error" id="err-email">Vendosni nje adrese email te vlefshme</span></div>
           <button class="btn-full" onclick="submitBooking()">&#10003; Konfirmo Rezervimin</button>
         </div>
       </div>
@@ -1207,7 +1207,7 @@ function changeMonth(dir){
 
 function validateName(v){return v.length>=2&&/^[a-zA-ZëËçÇ\s\-']+$/.test(v);}
 function validatePhone(v){var d=v.replace(/\D/g,'');return /^3556[89]\d{7}$/.test(d);}
-function validateEmail(v){return v===''||/^[a-zA-Z0-9._%+\-]+@gmail\.com$/.test(v);}
+function validateEmail(v){return v===''||/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);}
 function setFieldError(inputId,errId,hasError){
   document.getElementById(inputId).classList.toggle('error',hasError);
   document.getElementById(errId).classList.toggle('show',hasError);
