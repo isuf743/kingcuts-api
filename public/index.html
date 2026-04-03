@@ -1207,7 +1207,22 @@ function changeMonth(dir){
 
 function validateName(v){return v.length>=2&&/^[a-zA-ZëËçÇ\s\-']+$/.test(v);}
 function validatePhone(v){var d=v.replace(/\D/g,'');return /^3556[89]\d{7}$/.test(d);}
-function validateEmail(v){return v===''||/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);}
+function validateEmail(v){
+  if(v==='') return true;
+  // Kontrolloj formatin baze
+  if(!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v)) return false;
+  // Kontrolloj domain-et e njohura
+  var domain = v.split('@')[1].toLowerCase();
+  var knownDomains = ['gmail.com','yahoo.com','yahoo.it','yahoo.co.uk','hotmail.com','outlook.com','live.com','icloud.com','protonmail.com','proton.me','aol.com','mail.com','gmx.com','yandex.com','zoho.com'];
+  // Nese eshte domain i njohur, duhet te jete SAKTESISHT i njohur
+  var baseDomain = domain.split('.').slice(-2).join('.');
+  var knownBases = knownDomains.map(function(d){ return d.split('.').slice(-2).join('.'); });
+  if(knownBases.indexOf(baseDomain) >= 0){
+    return knownDomains.indexOf(domain) >= 0;
+  }
+  // Domain i panjohur (business email) - lejo
+  return true;
+}
 function setFieldError(inputId,errId,hasError){
   document.getElementById(inputId).classList.toggle('error',hasError);
   document.getElementById(errId).classList.toggle('show',hasError);
@@ -1242,6 +1257,8 @@ function submitBooking(){
     .then(function(res){
       if(res.success){
         lastBookingId = res.id;
+        sessionStorage.setItem('kc_booking_id', res.id);
+        sessionStorage.setItem('kc_booking_phone', phone);
         // Vazhdo me sukses
         // Ruaj te dhenat per success page PARA goPage
         var _srv=booking.service,_brb=booking.barber,_date=selDateLabel,_slot=selSlot,_price=booking.price,_id=lastBookingId;
@@ -1413,7 +1430,15 @@ function showQRCode(bookingId, service, barber, date, time){
 var lastBookingId=0;
 var isSubmitting=false;
 function openCancelModal(){
-  document.getElementById('cancel-phone').value='';
+  // Merr lastBookingId nga sessionStorage nese mungon
+  if(!lastBookingId){
+    var saved = sessionStorage.getItem('kc_booking_id');
+    if(saved) lastBookingId = parseInt(saved);
+  }
+  // Pre-fill telefoni nese eshte ruajtur
+  var savedPhone = sessionStorage.getItem('kc_booking_phone');
+  document.getElementById('cancel-phone').value = savedPhone || '';
+  if(savedPhone) formatPhone(document.getElementById('cancel-phone'));
   document.getElementById('cancel-msg').style.display='none';
   document.getElementById('cancel-modal').classList.add('open');
 }
@@ -1432,7 +1457,7 @@ function confirmCancel(){
     body:JSON.stringify({id:lastBookingId,phone:phone})
   }).then(function(r){return r.json();})
   .then(function(res){
-    if(res.success){closeCancelModal();showToast('✓ Rezervimi u anulua!');setTimeout(function(){resetAll();},2000);}
+    if(res.success){sessionStorage.removeItem('kc_booking_id');sessionStorage.removeItem('kc_booking_phone');closeCancelModal();showToast('✓ Rezervimi u anulua!');setTimeout(function(){resetAll();},2000);}
     else{msg.textContent=res.error||'Numri nuk përputhet!';msg.style.display='block';}
   }).catch(function(){msg.textContent='Gabim lidhje!';msg.style.display='block';});
 }
