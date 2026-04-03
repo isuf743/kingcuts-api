@@ -354,6 +354,78 @@ body{animation:pageReveal .8s ease both;}
 .asv{display:flex;gap:.7rem;margin-bottom:.6rem;align-items:flex-start}
 .asvi{width:30px;height:30px;background:#f5e8c8;border:1px solid #d8c8a0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
 @media(max-width:900px){.asl{grid-template-columns:1fr;gap:1.5rem}.asi{height:220px}}
+
+/* 3D FLIP CARDS */
+.price-card{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  perspective:1000px;
+  height:320px;
+}
+.price-card-inner{
+  position:relative;
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
+}
+.price-card:hover .price-card-inner{
+  transform:rotateY(180deg);
+}
+.price-card.selected-service .price-card-inner{
+  transform:rotateY(180deg);
+}
+.price-front,.price-back{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:6px;
+  padding:2rem;
+}
+.price-front{
+  background:#fff;
+  border:2px solid #2e2518;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+.price-card:hover .price-front{
+  border-color:#a8742a;
+  box-shadow:0 8px 30px rgba(168,116,42,.25);
+}
+.price-card.featured .price-front{
+  border-color:#a8742a;
+  background:linear-gradient(135deg,#fff8ef,#fdf0d5);
+}
+.price-back{
+  background:linear-gradient(135deg,#1a1208,#2e2518);
+  border:2px solid #c9a84c;
+  transform:rotateY(180deg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.price-back-icon{font-size:2.5rem;margin-bottom:.8rem}
+.price-back-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.5rem}
+.price-back-price{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:#c9a84c;margin-bottom:.3rem}
+.price-back-dur{font-size:.75rem;color:rgba(255,240,210,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem}
+.price-back-btn{
+  background:#c9a84c;color:#1a1208;border:none;
+  font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:.8rem 1.8rem;border-radius:3px;cursor:pointer;
+  transition:background .2s;width:100%;
+}
+.price-back-btn:hover{background:#F5C842;}
+.price-card.selected-service .price-back{border-color:#F5C842;}
+.price-card.selected-service .price-front{border-color:#a8742a;border-width:3px;}
 </style>
 </head>
 <body>
@@ -579,16 +651,168 @@ body{animation:pageReveal .8s ease both;}
       <button class="ptab" onclick="switchPricing('premium')">Premium</button>
     </div>
     <div class="pricing-panel active" id="price-basic">
-      <div class="price-card" onclick="selectService(this,'Prerje Flokesh','800 L','30 min')"><span class="price-icon">&#9988;</span><div class="price-name">Prerje Flokesh</div><p class="price-desc">Prerje klasike me makine dhe gershere. Perfshihet larje dhe tharje.</p><span class="price-val">800 L<span class="price-duration"> &middot; 30 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Rregullim Mjekre','500 L','20 min')"><span class="price-icon">&#129746;</span><div class="price-name">Rregullim Mjekre</div><p class="price-desc">Formesim me brisk te nxehte dhe vaj argan premium.</p><span class="price-val">500 L<span class="price-duration"> &middot; 20 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Prerje + Mjeker','1200 L','50 min')"><span class="price-icon">&#128135;</span><div class="price-name">Prerje + Mjeker</div><p class="price-desc">Kombinimi i prerjes dhe rregullimit te mjekres.</p><span class="price-val">1200 L<span class="price-duration"> &middot; 50 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Prerje Femije','500 L','25 min')"><span class="price-icon">&#128102;</span><div class="price-name">Prerje Femije</div><p class="price-desc">Prerje e kujdesshme per femije deri 12 vjec.</p><span class="price-val">500 L<span class="price-duration"> &middot; 25 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card" onclick="selectService(this,'Prerje Flokesh','800 L','30 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#9988;</span>
+        <div class="price-name">Prerje Flokesh</div>
+        <p class="price-desc">Prerje klasike me makine dhe gershere. Perfshihet larje dhe tharje.</p>
+      </div>
+      <span class="price-val">800 L<span class="price-duration"> &middot; 30 min</span></span>
     </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#9988;</div>
+      <div class="price-back-name">Prerje Flokesh</div>
+      <div class="price-back-price">800 L</div>
+      <div class="price-back-dur">30 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'Rregullim Mjekre','500 L','20 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#129746;</span>
+        <div class="price-name">Rregullim Mjekre</div>
+        <p class="price-desc">Formesim me brisk te nxehte dhe vaj argan premium.</p>
+      </div>
+      <span class="price-val">500 L<span class="price-duration"> &middot; 20 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#129746;</div>
+      <div class="price-back-name">Rregullim Mjekre</div>
+      <div class="price-back-price">500 L</div>
+      <div class="price-back-dur">20 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'Prerje + Mjeker','1200 L','50 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#128135;</span>
+        <div class="price-name">Prerje + Mjeker</div>
+        <p class="price-desc">Kombinimi i prerjes dhe rregullimit te mjekres.</p>
+      </div>
+      <span class="price-val">1200 L<span class="price-duration"> &middot; 50 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#128135;</div>
+      <div class="price-back-name">Prerje + Mjeker</div>
+      <div class="price-back-price">1200 L</div>
+      <div class="price-back-dur">50 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'Prerje Femije','500 L','25 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#128102;</span>
+        <div class="price-name">Prerje Femije</div>
+        <p class="price-desc">Prerje e kujdesshme per femije deri 12 vjec.</p>
+      </div>
+      <span class="price-val">500 L<span class="price-duration"> &middot; 25 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#128102;</div>
+      <div class="price-back-name">Prerje Femije</div>
+      <div class="price-back-price">500 L</div>
+      <div class="price-back-dur">25 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div></div>
     <div class="pricing-panel" id="price-premium">
-      <div class="price-card featured" onclick="selectService(this,'King Experience','2500 L','75 min')"><span class="price-badge">Bestseller</span><span class="price-icon">&#128081;</span><div class="price-name">King Experience</div><p class="price-desc">Prerje, mjeker me brisk, masazh koke 10 min, vajra premium.</p><span class="price-val">2500 L<span class="price-duration"> &middot; 75 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Grooming i Plote','2000 L','60 min')"><span class="price-icon">&#128136;</span><div class="price-name">Grooming i Plote</div><p class="price-desc">Prerje + mjeker + trajtim lekure + maska fytyre.</p><span class="price-val">2000 L<span class="price-duration"> &middot; 60 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'Trajtim Lekure','1500 L','40 min')"><span class="price-icon">&#129404;</span><div class="price-name">Trajtim Lekure</div><p class="price-desc">Pastrimi i thelle dhe hidratim me produkte Kerastase.</p><span class="price-val">1500 L<span class="price-duration"> &middot; 40 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
-      <div class="price-card" onclick="selectService(this,'VIP Home Service','5000 L','90 min')"><span class="price-icon">&#128142;</span><div class="price-name">VIP Home Service</div><p class="price-desc">Sherbim premium ne shtepine tuaj me berberin personal.</p><span class="price-val">5000 L<span class="price-duration"> &middot; 90 min</span></span><button class="select-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button></div>
+      <div class="price-card featured" onclick="selectService(this,'King Experience','2500 L','75 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      <span class="price-badge">Bestseller</span>
+      <div>
+        <span class="price-icon">&#128081;</span>
+        <div class="price-name">King Experience</div>
+        <p class="price-desc">Prerje, mjeker me brisk, masazh koke 10 min, vajra premium.</p>
+      </div>
+      <span class="price-val">2500 L<span class="price-duration"> &middot; 75 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#128081;</div>
+      <div class="price-back-name">King Experience</div>
+      <div class="price-back-price">2500 L</div>
+      <div class="price-back-dur">75 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'Grooming i Plote','2000 L','60 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#128136;</span>
+        <div class="price-name">Grooming i Plote</div>
+        <p class="price-desc">Prerje + mjeker + trajtim lekure + maska fytyre.</p>
+      </div>
+      <span class="price-val">2000 L<span class="price-duration"> &middot; 60 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#128136;</div>
+      <div class="price-back-name">Grooming i Plote</div>
+      <div class="price-back-price">2000 L</div>
+      <div class="price-back-dur">60 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'Trajtim Lekure','1500 L','40 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#129404;</span>
+        <div class="price-name">Trajtim Lekure</div>
+        <p class="price-desc">Pastrimi i thelle dhe hidratim me produkte Kerastase.</p>
+      </div>
+      <span class="price-val">1500 L<span class="price-duration"> &middot; 40 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#129404;</div>
+      <div class="price-back-name">Trajtim Lekure</div>
+      <div class="price-back-price">1500 L</div>
+      <div class="price-back-dur">40 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+      <div class="price-card" onclick="selectService(this,'VIP Home Service','5000 L','90 min')">
+  <div class="price-card-inner">
+    <div class="price-front">
+      
+      <div>
+        <span class="price-icon">&#128142;</span>
+        <div class="price-name">VIP Home Service</div>
+        <p class="price-desc">Sherbim premium ne shtepine tuaj me berberin personal.</p>
+      </div>
+      <span class="price-val">5000 L<span class="price-duration"> &middot; 90 min</span></span>
+    </div>
+    <div class="price-back">
+      <div class="price-back-icon">&#128142;</div>
+      <div class="price-back-name">VIP Home Service</div>
+      <div class="price-back-price">5000 L</div>
+      <div class="price-back-dur">90 min</div>
+      <button class="price-back-btn" onclick="event.stopPropagation();goToBarber()">Vazhdo &rarr;</button>
+    </div>
+  </div>
+</div>
+    </div>
     </div>
   </div>
 </div>
