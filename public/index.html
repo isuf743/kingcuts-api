@@ -1172,6 +1172,11 @@ function selectDate(key,d,m,y){
       });
       shtml+='</div>';
       document.getElementById('slots-container').innerHTML=shtml;
+      // Scroll automatik tek slots
+      setTimeout(function(){
+        var el = document.getElementById('slots-container');
+        if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+      }, 150);
     });
 }
 
@@ -1189,6 +1194,11 @@ function selectSlot(el){
   setFieldError('inp-name','err-name',false);
   setFieldError('inp-phone','err-phone',false);
   setFieldError('inp-email','err-email',false);
+  // Scroll automatik tek konfirmimi
+  setTimeout(function(){
+    var el = document.getElementById('confirm-form');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
 }
 
 function changeMonth(dir){
