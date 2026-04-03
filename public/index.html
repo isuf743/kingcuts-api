@@ -1217,6 +1217,8 @@ function setFieldError(inputId,errId,hasError){
 }
 
 function submitBooking(){
+  if(isSubmitting) return; // Button spam protection
+  isSubmitting=true;
   var name=document.getElementById('inp-name').value.trim();
   var phone=document.getElementById('inp-phone').value.trim();
   var email=document.getElementById('inp-email').value.trim();
@@ -1224,8 +1226,8 @@ function submitBooking(){
   if(!validateName(name)){setFieldError('inp-name','err-name',true);valid=false;}else setFieldError('inp-name','err-name',false);
   if(!validatePhone(phone)){setFieldError('inp-phone','err-phone',true);valid=false;}else setFieldError('inp-phone','err-phone',false);
   if(!validateEmail(email)){setFieldError('inp-email','err-email',true);valid=false;}else setFieldError('inp-email','err-email',false);
-  if(!valid){showToast('⚠ Kontrolloni fushat!');return;}
-  if(!selDate||!selSlot){showToast('⚠ Zgjidhni daten dhe oren!');return;}
+  if(!valid){showToast('⚠ Kontrolloni fushat!');isSubmitting=false;return;}
+  if(!selDate||!selSlot){showToast('⚠ Zgjidhni daten dhe oren!');isSubmitting=false;return;}
   document.getElementById('s-srv').textContent=booking.service;
   document.getElementById('s-brb').textContent=booking.barber||'--';
   document.getElementById('s-date').textContent=selDateLabel;
@@ -1268,6 +1270,7 @@ function submitBooking(){
       } else {
         // DOUBLE BOOKING ose error tjeter - trego klientit
         if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+        isSubmitting=false;
         showToast('⚠ '+( res.error || 'Gabim! Provo perseri.'));
         // Rifresko slot-et - ora mund te jete zene tani
         if(selDate && booking.barberId){
@@ -1298,6 +1301,7 @@ function submitBooking(){
     })
     .catch(function(e){
       if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+      isSubmitting=false;
       showToast('⚠ Gabim lidhje! Kontrolloni internetin.');
     });
 }
@@ -1410,6 +1414,7 @@ function showQRCode(bookingId, service, barber, date, time){
 
 // ── ANULIM ──
 var lastBookingId=0;
+var isSubmitting=false;
 function openCancelModal(){
   document.getElementById('cancel-phone').value='';
   document.getElementById('cancel-msg').style.display='none';
