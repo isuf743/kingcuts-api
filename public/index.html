@@ -426,6 +426,13 @@ body{animation:pageReveal .8s ease both;}
 .price-back-btn:hover{background:#F5C842;}
 .price-card.selected-service .price-back{border-color:#F5C842;}
 .price-card.selected-service .price-front{border-color:#a8742a;border-width:3px;}
+
+/* LOADING SPINNER */
+.btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(26,18,8,.3);border-top-color:#1a1208;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(26,18,8,.3);border-top-color:#1a1208;border-radius:50%;animation:spin .7s linear infinite;margin-right:.5rem;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -1141,7 +1148,7 @@ function renderCal(){
 function calDayClick(el){
   isSubmitting=false;
   var btn=document.querySelector('#confirm-form .btn-full');
-  if(btn){btn.disabled=false;btn.textContent='✓ Konfirmo Rezervimin';}
+  if(btn){btn.disabled=false;btn.innerHTML='&#10003; Konfirmo Rezervimin';}
   selectDate(el.dataset.key,parseInt(el.dataset.d),parseInt(el.dataset.m),parseInt(el.dataset.y));
 }
 
@@ -1187,7 +1194,7 @@ function selectSlot(el){
   // Reset submit state nese klienti zgjidh ore tjeter
   isSubmitting=false;
   var btn=document.querySelector('#confirm-form .btn-full');
-  if(btn){btn.disabled=false;btn.textContent='✓ Konfirmo Rezervimin';}
+  if(btn){btn.disabled=false;btn.innerHTML='&#10003; Konfirmo Rezervimin';}
   document.getElementById('sum-srv').textContent=booking.service||'--';
   document.getElementById('sum-brb').textContent=booking.barber||'--';
   document.getElementById('sum-date').textContent=selDateLabel;
@@ -1255,7 +1262,7 @@ function submitBooking(){
   document.getElementById('s-email-shown').textContent=email||'(nuk u dha)';
   // Disable butonin gjate dergimit
   var submitBtn = document.querySelector('#confirm-form .btn-full');
-  if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='Duke rezervuar...'; }
+  if(submitBtn){ submitBtn.disabled=true; submitBtn.innerHTML='<span class="btn-spinner"></span>Duke rezervuar...'; }
 
   fetch('https://kingcuts-api-production.up.railway.app/api.php?action=add_booking',{
     method:'POST',headers:{'Content-Type':'application/json'},
@@ -1290,7 +1297,7 @@ function submitBooking(){
         }
       } else {
         // DOUBLE BOOKING ose error tjeter - trego klientit
-        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+        if(submitBtn){ submitBtn.disabled=false; submitBtn.innerHTML='&#10003; Konfirmo Rezervimin'; }
         isSubmitting=false;
         showToast('⚠ '+( res.error || 'Gabim! Provo perseri.'));
         // Rifresko slot-et - ora mund te jete zene tani
@@ -1321,7 +1328,7 @@ function submitBooking(){
       }
     })
     .catch(function(e){
-      if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+      if(submitBtn){ submitBtn.disabled=false; submitBtn.innerHTML='&#10003; Konfirmo Rezervimin'; }
       isSubmitting=false;
       showToast('⚠ Gabim lidhje! Kontrolloni internetin.');
     });
