@@ -1232,26 +1232,62 @@ function submitBooking(){
   document.getElementById('s-time').textContent=selSlot;
   document.getElementById('s-price').textContent=booking.price;
   document.getElementById('s-email-shown').textContent=email||'(nuk u dha)';
+  // Disable butonin gjate dergimit
+  var submitBtn = document.querySelector('#confirm-form .btn-full');
+  if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='Duke rezervuar...'; }
+
   fetch('https://kingcuts-api-production.up.railway.app/api.php?action=add_booking',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({client_name:name,client_phone:phone,client_email:email,barber_name:booking.barber,service_name:booking.service,price:booking.price,booking_date:selDate,booking_time:selSlot})
   }).then(function(r){return r.json();})
-    .then(function(res){if(res.success){ lastBookingId = res.id; console.log('Rezervimi u ruajt! ID:'+res.id); } else console.log('Gabim:',res.error);})
-    .catch(function(e){console.log('Error:',e);});
-  if(email){
-    fetch('https://kingcuts-api-production.up.railway.app/api.php?action=send_email',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to_email:email,to_name:name,service:booking.service,barber:booking.barber,date:selDateLabel,time:selSlot,price:booking.price})
-    }).then(function(r){return r.json();})
-      .then(function(res){console.log(res.success?'Email u dergua!':'Email error: '+res.error);})
-      .catch(function(e){console.log('Email error:',e);});
-  }
-  goPage('p-success');
-  // Gjenero QR
-  showQRCode(lastBookingId, booking.service, booking.barber, selDateLabel, selSlot);
-  // Gjenero linqet e kalendarit
-  generateCalendarLinks(booking.service, booking.barber, selDateLabel, selSlot, booking.price);
+    .then(function(res){
+      if(res.success){
+        lastBookingId = res.id;
+        // Vazhdo me sukses
+        goPage('p-success');
+        showQRCode(lastBookingId, booking.service, booking.barber, selDateLabel, selSlot);
+        generateCalendarLinks(booking.service, booking.barber, selDateLabel, selSlot, booking.price);
+        if(email){
+          fetch('https://kingcuts-api-production.up.railway.app/api.php?action=send_email',{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({to_email:email,to_name:name,service:booking.service,barber:booking.barber,date:selDateLabel,time:selSlot,price:booking.price})
+          }).catch(function(){});
+        }
+      } else {
+        // DOUBLE BOOKING ose error tjeter - trego klientit
+        if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+        showToast('⚠ '+( res.error || 'Gabim! Provo perseri.'));
+        // Rifresko slot-et - ora mund te jete zene tani
+        if(selDate && booking.barberId){
+          document.querySelectorAll('.slot').forEach(function(s){s.classList.remove('selected');});
+          selSlot = null;
+          document.getElementById('confirm-form').style.display='none';
+          document.getElementById('waiting-msg').style.display='block';
+          // Rifresko ore te lira
+          var barberParam = booking.barberId ? '&barber_id='+booking.barberId : '';
+          fetch('https://kingcuts-api-production.up.railway.app/api.php?action=get_booked_slots&date='+selDate+barberParam)
+            .then(function(r){return r.json();})
+            .catch(function(){return [];})
+            .then(function(booked){
+              document.querySelectorAll('.slot:not(.booked)').forEach(function(s){
+                if(booked.indexOf(s.dataset.time)>=0){
+                  s.classList.add('booked');
+                  s.onclick = null;
+                }
+              });
+              document.getElementById('waiting-msg').style.display='none';
+              setTimeout(function(){
+                var sc = document.getElementById('slots-container');
+                if(sc) sc.scrollIntoView({behavior:'smooth',block:'center'});
+              },200);
+            });
+        }
+      }
+    })
+    .catch(function(e){
+      if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='✓ Konfirmo Rezervimin'; }
+      showToast('⚠ Gabim lidhje! Kontrolloni internetin.');
+    });
 }
 
 function setRating(val){
