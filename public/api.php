@@ -1,13 +1,31 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){ http_response_code(200); exit; }
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('X-Content-Type-Options: nosniff');
+if($_SERVER['REQUEST_METHOD'] === 'OPTIONS'){ http_response_code(200); exit; }
 error_reporting(0);
 ini_set('display_errors', 0);
+
+// ── RATE LIMITING ──
+function checkRateLimit($action, $max=30, $window=60){
+    $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0] : (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'x');
+    $key = sys_get_temp_dir().'/rl_'.md5($ip.'_'.$action);
+    $now = time();
+    $d = file_exists($key) ? json_decode(file_get_contents($key), true) : ['c'=>0,'t'=>$now];
+    if($now - $d['t'] > $window) $d = ['c'=>1,'t'=>$now];
+    else $d['c']++;
+    file_put_contents($key, json_encode($d), LOCK_EX);
+    return $d['c'] <= $max;
+}
+$_act = isset($_GET['action']) ? $_GET['action'] : '';
+$_limits = ['add_booking'=>[10,300],'add_review'=>[5,300],'cancel_booking_client'=>[5,60],'barber_login'=>[5,60],'admin_login'=>[5,60],'send_email'=>[10,300]];
+if(isset($_limits[$_act]) && !checkRateLimit($_act, $_limits[$_act][0], $_limits[$_act][1])){
+    http_response_code(429);
+    echo json_encode(['error'=>'Shume kerkesa. Provo perseri pas pak minutash.']);
+    exit;
+}
 
 define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
 define('DB_USER', getenv('MYSQLUSER') ?: 'root');
