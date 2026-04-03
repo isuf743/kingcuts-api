@@ -1139,6 +1139,9 @@ function renderCal(){
 }
 
 function calDayClick(el){
+  isSubmitting=false;
+  var btn=document.querySelector('#confirm-form .btn-full');
+  if(btn){btn.disabled=false;btn.textContent='✓ Konfirmo Rezervimin';}
   selectDate(el.dataset.key,parseInt(el.dataset.d),parseInt(el.dataset.m),parseInt(el.dataset.y));
 }
 
@@ -1181,6 +1184,10 @@ function selectSlot(el){
   var time=el.dataset.time||el.textContent.trim();
   document.querySelectorAll('.slot').forEach(function(s){s.classList.remove('selected');});
   el.classList.add('selected'); selSlot=time;
+  // Reset submit state nese klienti zgjidh ore tjeter
+  isSubmitting=false;
+  var btn=document.querySelector('#confirm-form .btn-full');
+  if(btn){btn.disabled=false;btn.textContent='✓ Konfirmo Rezervimin';}
   document.getElementById('sum-srv').textContent=booking.service||'--';
   document.getElementById('sum-brb').textContent=booking.barber||'--';
   document.getElementById('sum-date').textContent=selDateLabel;
@@ -1466,16 +1473,7 @@ window.addEventListener('load', function(){
   loadReviews();
 });
 
-// ANTI-REFRESH: paralajmero nese klienti rifresk gjate booking
-window.addEventListener('beforeunload', function(e){
-  var activePage = document.querySelector('.page.active');
-  if(!activePage) return;
-  var id = activePage.id;
-  if(id==='p-service'||id==='p-barber'||id==='p-calendar'){
-    e.preventDefault();
-    e.returnValue='Jeni duke bere nje rezervim. Nese dilni, rezervimi humbet!';
-  }
-});
+
 </script>
 </body>
 </html>
