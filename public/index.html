@@ -346,6 +346,20 @@ body{animation:pageReveal .8s ease both;}
 #hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 .hero-content{position:relative;z-index:2}
 .hero-bg,.hero-pattern{z-index:0}
+
+/* RRETH NESH SECTION */
+.about-section-layout{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.about-section-img{width:100%;height:460px;object-fit:cover;border-radius:4px;filter:brightness(.92)}
+.about-section-badge{position:absolute;bottom:-1.2rem;right:-1.2rem;background:#1a1208;border:3px solid #c9a84c;padding:1.2rem 1.8rem;text-align:center;border-radius:4px}
+.about-section-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;color:#c9a84c;line-height:1;display:block}
+.about-section-lbl{font-size:.65rem;color:rgba(255,240,210,.5);text-transform:uppercase;letter-spacing:.15em;display:block;margin-top:.25rem}
+.about-tag-sm{display:inline-block;background:#f5e8c8;border:1px solid #d8c8a0;color:#a8742a;font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:.25rem .7rem;border-radius:2px;margin-bottom:1rem}
+.about-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.8rem 0;padding:1.5rem 0;border-top:1px solid #d8c8a0;border-bottom:1px solid #d8c8a0;text-align:center}
+.about-sn{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:#a8742a;display:block}
+.about-sl{font-size:.68rem;color:#7a6a50;text-transform:uppercase;letter-spacing:.1em;display:block;margin-top:.2rem}
+.about-val-row{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:.7rem}
+.about-val-ic{width:32px;height:32px;background:#f5e8c8;border:1px solid #d8c8a0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+@media(max-width:900px){.about-section-layout{grid-template-columns:1fr;gap:2rem}.about-section-img{height:240px}}
 </style>
 </head>
 <body>
@@ -441,6 +455,39 @@ body{animation:pageReveal .8s ease both;}
     </div>
     <div style="text-align:center;margin-top:2.5rem">
       <button class="hero-cta" style="font-size:.78rem;padding:.9rem 2.2rem" onclick="goPage('p-service')">Rezervo Tani &rarr;</button>
+    </div>
+  </section>
+
+  <!-- RRETH NESH -->
+  <section class="home-section" id="about-section" style="background:var(--bg2)">
+    <div class="section-header reveal">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Rreth<br><em>King Cuts</em></h2>
+    </div>
+    <div class="about-section-layout reveal">
+      <div style="position:relative">
+        <img class="about-section-img" src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80" alt="King Cuts Sallon">
+        <div class="about-section-badge">
+          <span class="about-section-num">2018</span>
+          <span class="about-section-lbl">Themeluar</span>
+        </div>
+      </div>
+      <div>
+        <span class="about-tag-sm">&#9986; Historia Jonë</span>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;color:#1a1208;line-height:1.1;margin-bottom:1rem">Më shumë se<br><em style="color:#a8742a;font-style:italic">thjesht një prerje</em></h3>
+        <p style="font-size:.9rem;color:#5a4a38;line-height:1.9;margin-bottom:.7rem">King Cuts u themelua në 2018 me një vizion të qartë — të sjellim standardet më të larta të berberisë në zemër të Tiranës. Çdo klient që hyn është një mik i besuar.</p>
+        <p style="font-size:.9rem;color:#5a4a38;line-height:1.9">Ekipi ynë me eksperiencë 5-12 vjet ofron shërbimin e personalizuar që ju meritoni, nga prerjet klasike deri te trajtimet premium.</p>
+        <div class="about-stats-row">
+          <div><span class="about-sn">6+</span><span class="about-sl">Vite Eksperiencë</span></div>
+          <div><span class="about-sn">4</span><span class="about-sl">Berberë Ekspertë</span></div>
+          <div><span class="about-sn">5K+</span><span class="about-sl">Klientë të Kënaqur</span></div>
+        </div>
+        <div>
+          <div class="about-val-row"><div class="about-val-ic">&#127942;</div><div><div style="font-size:.82rem;font-weight:700;color:#1a1208;margin-bottom:.15rem">Cilësia Mbi Gjithçka</div><div style="font-size:.78rem;color:#7a6a50;line-height:1.6">Vetëm produktet premium për çdo shërbim.</div></div></div>
+          <div class="about-val-row"><div class="about-val-ic">&#128081;</div><div><div style="font-size:.82rem;font-weight:700;color:#1a1208;margin-bottom:.15rem">Stil Personal</div><div style="font-size:.78rem;color:#7a6a50;line-height:1.6">Çdo prerje përshtatet me stilin tuaj unik.</div></div></div>
+          <div class="about-val-row"><div class="about-val-ic">&#10084;</div><div><div style="font-size:.82rem;font-weight:700;color:#1a1208;margin-bottom:.15rem">Besnikëri ndaj Klientit</div><div style="font-size:.78rem;color:#7a6a50;line-height:1.6">Mbi 80% e klientëve kthehen çdo muaj.</div></div></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1180,16 +1227,19 @@ window.addEventListener('load', function(){
     // Pikat
     particles.forEach(function(p){
       ctx.beginPath();
-      ctx.arc(p.x*W/100, p.y*H/100, p.size, 0, Math.PI*2);
-      ctx.fillStyle='rgba(201,168,76,'+p.opacity+')';
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(201,168,76,'+p.o+')';
       ctx.fill();
     });
-    
-    requestAnimationFrame(draw);
+    requestAnimationFrame(animate);
   }
-  draw();
-})();
+  animate();
+}
 
+window.addEventListener('load', function(){
+  loadReviews();
+  if(document.getElementById('hero-canvas')) initParticles();
+});
 </script>
 </body>
 </html>
