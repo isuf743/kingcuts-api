@@ -1061,14 +1061,11 @@ function loadBarbersForBooking(){
   fetch('https://kingcuts-api-production.up.railway.app/api.php?action=get_barbers')
     .then(function(r){return r.json();})
     .catch(function(){
-      return [
-        {id:1,name:'Artan Koci',role:'Master Berber',experience:'12 vjet',specialties:'Fade, Klasik, Mjeker',active:'1'},
-        {id:2,name:'Blerim Hoxha',role:'Senior Berber',experience:'8 vjet',specialties:'Modern, Skin Fade',active:'1'},
-        {id:3,name:'Driton Shehu',role:'Berber',experience:'5 vjet',specialties:'Teksture, Curly',active:'1'},
-        {id:4,name:'Gentian Mema',role:'Grooming Specialist',experience:'6 vjet',specialties:'Grooming, VIP',active:'1'}
-      ];
+      grid.innerHTML='<div style="padding:2rem;color:#e74c3c;grid-column:span 4;text-align:center">⚠ Nuk mund të lidhet me serverin. Ju lutemi provoni përsëri.</div>';
+      return null;
     })
     .then(function(barbers){
+      if(!barbers) return; // Server error - mesazhi eshte shfaqur tashme
       if(!Array.isArray(barbers)) barbers=[];
       var active=barbers.filter(function(b){return b.active==1||b.active==='1';});
       if(!active.length) active=barbers;
