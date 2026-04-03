@@ -1244,9 +1244,21 @@ function submitBooking(){
       if(res.success){
         lastBookingId = res.id;
         // Vazhdo me sukses
+        // Ruaj te dhenat per success page PARA goPage
+        var _srv=booking.service,_brb=booking.barber,_date=selDateLabel,_slot=selSlot,_price=booking.price,_id=lastBookingId;
+        
+        // ANTI-REFRESH: pastro formen dhe state menjehere
+        document.getElementById('inp-name').value='';
+        document.getElementById('inp-phone').value='';
+        document.getElementById('inp-email').value='';
+        selDate=null; selSlot=null; selDateLabel='';
+        booking={service:'',price:'',duration:'',barber:'',barberId:0};
+        lastBookingId=0;
+        
+        // Shfaq success page
         goPage('p-success');
-        showQRCode(lastBookingId, booking.service, booking.barber, selDateLabel, selSlot);
-        generateCalendarLinks(booking.service, booking.barber, selDateLabel, selSlot, booking.price);
+        showQRCode(_id, _srv, _brb, _date, _slot);
+        generateCalendarLinks(_srv, _brb, _date, _slot, _price);
         if(email){
           fetch('https://kingcuts-api-production.up.railway.app/api.php?action=send_email',{
             method:'POST', headers:{'Content-Type':'application/json'},
@@ -1425,6 +1437,17 @@ function confirmCancel(){
 
 window.addEventListener('load', function(){
   loadReviews();
+});
+
+// ANTI-REFRESH: paralajmero nese klienti rifresk gjate booking
+window.addEventListener('beforeunload', function(e){
+  var activePage = document.querySelector('.page.active');
+  if(!activePage) return;
+  var id = activePage.id;
+  if(id==='p-service'||id==='p-barber'||id==='p-calendar'){
+    e.preventDefault();
+    e.returnValue='Jeni duke bere nje rezervim. Nese dilni, rezervimi humbet!';
+  }
 });
 </script>
 </body>
